@@ -144,18 +144,57 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    auto newDSPOrder= DSP_Order();
+    //pulling the order trying actually
+    while (dspOrderFifo.pull(newDSPOrder))
     {
-        auto* channelData = buffer.getWritePointer (channel);
 
-        // ..do something to the data...
     }
+    //if pulled,replace
+    if(DSP_Order() != newDSPOrder)
+    {
+        dspOrder = newDSPOrder;
+
+    }
+    //array of pointers
+    Dsp_pointers dspPointers;
+    for(size_t i = 0; i < dspPointers.size(); ++i)
+    {
+        switch(dspOrder[i])
+        {
+            case DSP_Option::Phase:
+                dspPointers[i] = &phaser;
+                break;
+            case DSP_Option::Chorus:
+                dspPointers[i] = &chorus;
+                break;
+            case DSP_Option::Overdrive:
+                dspPointers[i] = &overdrive;
+                break;
+            case DSP_Option::LadderFilter:
+                dspPointers[i] = &ladderFilter;
+                break;
+            case DSP_Option::END_OF_LIST:
+                jassertfalse;
+                break;
+            default:
+                dspPointers[i] = nullptr;
+        }
+    }
+
+    //now procceess
+
+    auto block = juce::dsp::AudioBlock<float>(buffer);
+    auto context = juce::dsp::ProcessContextReplacing<float>(block);
+
+    for(size_t i = 0; i < dspPointers.size(); ++i)
+    {   //need to check if the pointer is not null
+        if(dspPointers[i] != nullptr)
+        {
+            dspPointers[i]->process(context);
+        }
+    }
+   
 }
 
 //==============================================================================
