@@ -9,10 +9,12 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <Fifo.h>
 
 //==============================================================================
 /**
 */
+
 class Audio_proAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
                              , public juce::AudioProcessorARAExtension
@@ -63,12 +65,13 @@ public:
       LadderFilter,
       END_OF_LIST
     };
-    using Dsp_Order = std::array<DSP_Option, static_cast<int>(DSP_Option::END_OF_LIST)>;
+    using DSP_Order = std::array<DSP_Option, static_cast<int>(DSP_Option::END_OF_LIST)>;
     
+    SimpleMBComp::Fifo<DSP_Order> dspOrderFifo;
     
       
 private:
-    Dsp_Order dspOrder;
+    DSP_Order dspOrder;
 
     template<typename DSP>
     struct DSP_Choice : juce::dsp::ProcessorBase
