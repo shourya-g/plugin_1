@@ -129,6 +129,15 @@ bool Audio_proAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts
 }
 #endif
 
+juce::AudioProcessorValueTreeState::ParameterLayout 
+Audio_proAudioProcessor::createParameterLayout()
+{
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+   
+   //will fill later 
+    return layout;
+}
+
 void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -143,6 +152,10 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+    
+    //TODO: add apvts[done]
+    //TODO: create audio parameters for all the dsp options
+    
 
     auto newDSPOrder= DSP_Order();
     //pulling the order trying actually
