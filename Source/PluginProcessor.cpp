@@ -19,7 +19,7 @@ auto getChorusDepthName() {return juce::String("Chorus Depth %");}
 auto getChorusCenterDelayName() {return juce::String("Chorus Center DelayMs");}
 auto getChorusFeedbackName() {return juce::String("Chorus Feedback %");}
 auto getChorusMixName() {return juce::String("Chorus Mix %");}
-auto getChorusBypassName() {return juce::String("Chorus Bypass");}
+
 
 //==============================================================================
 Audio_proAudioProcessor::Audio_proAudioProcessor()

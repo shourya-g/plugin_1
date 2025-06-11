@@ -93,7 +93,7 @@ public:
     juce::AudioParameterFloat* chorusCenterDelayMs = nullptr;
     juce::AudioParameterFloat* chorusFeedbackPercent = nullptr;
     juce::AudioParameterFloat* chorusMixPercent = nullptr;
-    juce::AudioParameterBool* chorusBypass= nullptr;
+   
 
 private:
     DSP_Order dspOrder;
