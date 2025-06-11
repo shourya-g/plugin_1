@@ -34,7 +34,7 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
                        )
 #endif
 {
-    auto phaserParams= std::array
+    auto floatParams= std::array
     {
         &phaserRateHz,
         &phaserDepthPercent,
@@ -43,7 +43,7 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
         &phaserMixPercent
     };
 
-    auto phaserFuncs= std::array
+    auto floatnameFuncs= std::array
     {
         &getPhaserRateName,
         &getPhaserDepthName,
@@ -51,12 +51,12 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
         &getPhaserFeedbackName,
         &getPhaserMixName
     };
-    for(size_t i = 0; i < phaserParams.size(); ++i)
+    for(size_t i = 0; i < floatParams.size(); ++i)
     {   
         //get the pointer to the parameter
-        auto ptrtoParam = phaserParams[i];
+        auto ptrtoParam = floatParams[i];
         //get the parameter from the apvts
-        *ptrtoParam = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(phaserFuncs[i]()));
+        *ptrtoParam = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(floatnameFuncs[i]()));
         jassert(*ptrtoParam != nullptr);
     }
 }
