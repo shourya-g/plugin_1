@@ -13,6 +13,14 @@ auto getPhaserDepthName() {return juce::String("Phaser Depth %");}
 auto getPhaserCenterFreqName() {return juce::String("Phaser Center FreqHz");}
 auto getPhaserFeedbackName() {return juce::String("Phaser Feedback %");}
 auto getPhaserMixName() {return juce::String("Phaser Mix %");}
+
+auto getChorusRateName() {return juce::String("Chorus RateHz");}
+auto getChorusDepthName() {return juce::String("Chorus Depth %");}
+auto getChorusCenterDelayName() {return juce::String("Chorus Center DelayMs");}
+auto getChorusFeedbackName() {return juce::String("Chorus Feedback %");}
+auto getChorusMixName() {return juce::String("Chorus Mix %");}
+auto getChorusBypassName() {return juce::String("Chorus Bypass");}
+
 //==============================================================================
 Audio_proAudioProcessor::Audio_proAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
