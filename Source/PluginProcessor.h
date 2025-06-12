@@ -64,6 +64,7 @@ public:
       Overdrive,
       LadderFilter,
       END_OF_LIST
+      
     };
 
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
@@ -96,6 +97,10 @@ public:
    
     juce::AudioParameterFloat* overdriveSaturationPercent = nullptr;
     
+  juce::AudioParameterChoice* ladderFilterMode = nullptr;
+    juce::AudioParameterFloat* ladderFilterCutoffHz = nullptr;
+    juce::AudioParameterFloat* ladderFilterResonance = nullptr;
+    juce::AudioParameterFloat* ladderFilterDrive = nullptr;
 
 private:
     DSP_Order dspOrder;
