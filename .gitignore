@@ -40,7 +40,7 @@ bld/
 # Visual Studio code coverage results
 *.coverage
 *.coveragexml
-
+ .vscode/
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages
@@ -49,3 +49,4 @@ bld/
 **/[Pp]ackages/*
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
+.vscode
