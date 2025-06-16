@@ -102,6 +102,11 @@ public:
     juce::AudioParameterFloat* ladderFilterResonance = nullptr;
     juce::AudioParameterFloat* ladderFilterDrive = nullptr;
 
+    juce::AudioParameterChoice* generalFilterMode = nullptr;
+    juce::AudioParameterFloat* generalFilterFreqHz = nullptr;
+    juce::AudioParameterFloat* generalFilterQuality = nullptr;
+    juce::AudioParameterFloat* generalFilterGaindB = nullptr;
+
 private:
     DSP_Order dspOrder;
 

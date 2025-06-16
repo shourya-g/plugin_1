@@ -40,6 +40,20 @@ auto getLadderFilterChoices()
     };
 }
 
+auto getGeneralFilterChoices()
+{
+    return juce::StringArray
+    {
+         "Peak",
+        "bandpass",
+        "notch",
+        "allpass",
+    };
+}
+auto getGeneralFilterModeName() { return juce::String("General Filter Mode"); }
+auto getGeneralFilterFreqName() { return juce::String("General Filter Freq hz"); }
+auto getGeneralFilterQualityName() { return juce::String("General Filter Quality"); }
+auto getGeneralFilterGainName() { return juce::String("General Filter Gain"); }
 //==============================================================================
 Audio_proAudioProcessor::Audio_proAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -71,7 +85,11 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
 
         &ladderFilterCutoffHz,
         &ladderFilterResonance,
-        &ladderFilterDrive
+        &ladderFilterDrive,
+        &generalFilterFreqHz,
+        &generalFilterQuality,
+        &generalFilterGaindB
+        
     };
 
     auto floatnameFuncs= std::array
@@ -91,8 +109,12 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
 
         &getLadderFilterCutoffName,
         &getLadderFilterResonanceName,
-        &getLadderFilterDriveName
+        &getLadderFilterDriveName,
+        &getGeneralFilterFreqName,
+        &getGeneralFilterQualityName,
+        &getGeneralFilterGainName
     };
+    //connects each parameter to its name function for the apvts for float params
     for(size_t i = 0; i < floatParams.size(); ++i)
     {   
         //get the pointer to the parameter
@@ -101,8 +123,11 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
         *ptrtoParam = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(floatnameFuncs[i]()));
         jassert(*ptrtoParam != nullptr);
     }
+    //now for choice params 
     ladderFilterMode = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getLadderFilterModeName()));
     jassert(ladderFilterMode != nullptr);
+    generalFilterMode = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getGeneralFilterModeName()));
+    jassert(generalFilterMode != nullptr);
 }
 
 Audio_proAudioProcessor::~Audio_proAudioProcessor()
@@ -310,7 +335,38 @@ Audio_proAudioProcessor::createParameterLayout()
        juce::NormalisableRange<float>(1.f, 100.f, 0.1f, 1.f),
        1.f,
        ""));
-   
+
+    name = getGeneralFilterModeName();
+    choices = getGeneralFilterChoices();
+    layout.add(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID{name, versionhint}, name, choices, 0));
+
+    name = getGeneralFilterFreqName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{name, versionhint},
+        name,
+        juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 1.f),
+        750.f,
+        "Hz"));
+//GENERALFILTERQUALITY 0.1 TO 10
+    name = getGeneralFilterQualityName();
+    
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{name, versionhint},
+        name,
+        juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+        1.f,
+        ""));
+    //GENERALFILTERGAIN -24dB TO 24dB
+    name = getGeneralFilterGainName();
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID{name, versionhint},
+        name,
+        juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
+        0.f,
+        "dB"));
+          
+
 
     return layout;
 }
