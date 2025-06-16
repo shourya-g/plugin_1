@@ -201,6 +201,30 @@ void Audio_proAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
+    juce::dsp::ProcessSpec spec;
+    spec.sampleRate = sampleRate;
+    spec.maximumBlockSize = samplesPerBlock;
+    spec.numChannels = getTotalNumInputChannels();
+
+    std::vector<juce::dsp::ProcessorBase*> dsp
+    {
+        &phaser,
+        &chorus,
+        &overdrive,
+        &ladderFilter,
+        &generalFilter
+    };
+    //prepare and reset all the dsp processors
+    //bvery easy because wrapper class used for all the dsp processors
+    for(auto p : dsp)
+    {
+        p->prepare(spec);
+        p->reset();
+    }
+    
+    
+   
+
 }
 
 void Audio_proAudioProcessor::releaseResources()
