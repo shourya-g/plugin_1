@@ -217,7 +217,7 @@ void Audio_proAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     //prepare and reset all the dsp processors
     //bvery easy because wrapper class used for all the dsp processors
     for(auto p : dsp)
-    {
+    { 
         p->prepare(spec);
         p->reset();
     }
@@ -410,8 +410,7 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    //TODO: add apvts[done]
-    //TODO: create audio parameters for all the dsp options
+   
     
 
     auto newDSPOrder= DSP_Order();
@@ -478,7 +477,9 @@ bool Audio_proAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Audio_proAudioProcessor::createEditor()
 {
-    return new Audio_proAudioProcessorEditor (*this);
+    // return new Audio_proAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
+
 }
 
 //==============================================================================
@@ -487,12 +488,22 @@ void Audio_proAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    //this is the same as the getStateInformation in the editor
+    juce::MemoryOutputStream mos(destData, false);
+    //write the state of the apvts to the memory block that  init before meaning its peerpspectie of daw
+    apvts.state.writeToStream(mos);
 }
 
 void Audio_proAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    //read the state of the apvts from the memory block that  init before meaning its peerpspectie of daw
+    auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
+    if(tree.isValid())
+    {
+        apvts.replaceState(tree);
+    }
 }
 
 //==============================================================================
