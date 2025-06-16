@@ -420,6 +420,9 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             case DSP_Option::LadderFilter:
                 dspPointers[i] = &ladderFilter;
                 break;
+            case DSP_Option::GeneralFilter:
+                dspPointers[i] = &generalFilter;
+                break;
             case DSP_Option::END_OF_LIST:
                 jassertfalse;
                 break;

@@ -63,6 +63,7 @@ public:
       Chorus,
       Overdrive,
       LadderFilter,
+      GeneralFilter,
       END_OF_LIST
       
     };
@@ -134,7 +135,7 @@ private:
     DSP_Choice<juce::dsp::Phaser<float>> phaser;
     DSP_Choice<juce::dsp::Chorus<float>> chorus;
     DSP_Choice<juce::dsp::LadderFilter<float>> overdrive,ladderFilter;
-
+    DSP_Choice<juce::dsp::IIR::Filter<float>> generalFilter;
     using Dsp_pointers = std::array<juce::dsp::ProcessorBase*, static_cast<int>(DSP_Option::END_OF_LIST)>;
 
     //==============================================================================
