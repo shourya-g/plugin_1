@@ -108,9 +108,9 @@ public:
     juce::AudioParameterFloat* generalFilterQuality = nullptr;
     juce::AudioParameterFloat* generalFilterGaindB = nullptr;
 
-private:
     DSP_Order dspOrder;
 
+private:
     template<typename DSP>
     struct DSP_Choice : juce::dsp::ProcessorBase
     {

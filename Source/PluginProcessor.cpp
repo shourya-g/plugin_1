@@ -67,6 +67,20 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
                        )
 #endif
 {
+    dspOrder=
+    {{
+        DSP_Option::Phase,
+        DSP_Option::Chorus,
+        DSP_Option::Overdrive,
+        DSP_Option::LadderFilter,
+        //enum automatically takes phaser if size difference 
+    }
+
+    };
+
+
+
+    //array of pointers to the parameters
     auto floatParams= std::array
     {
         &phaserRateHz,
@@ -450,6 +464,7 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     }
     //array of pointers
     Dsp_pointers dspPointers;
+	dspPointers.fill(nullptr);
     for(size_t i = 0; i < dspPointers.size(); ++i)
     {
         switch(dspOrder[i])
@@ -500,11 +515,55 @@ bool Audio_proAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Audio_proAudioProcessor::createEditor()
 {
-    // return new Audio_proAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new Audio_proAudioProcessorEditor (*this);
+    // return new juce::GenericAudioProcessorEditor(*this);
 
 }
-
+template<>
+struct juce::VariantConverter<Audio_proAudioProcessor::DSP_Order>
+{
+    static Audio_proAudioProcessor::DSP_Order fromVar(const juce::var& v)
+    {
+     //reading from memeory bloack and casting that int to dsp order enumeration value
+     using T= Audio_proAudioProcessor::DSP_Order;
+     T dspOrder;
+     jassert(v.isBinaryData());
+     if(v.isBinaryData()==false)
+     {
+        dspOrder.fill(Audio_proAudioProcessor::DSP_Option::END_OF_LIST);
+        //want to hit jasssert later
+        return dspOrder;
+     }
+     else{
+        auto mb= *v.getBinaryData();
+        juce::MemoryInputStream mis(mb, false);
+        
+        std::vector<int> vec;
+        while(!mis.isExhausted()){
+            vec.push_back(mis.readInt());
+        }
+        jassert(vec.size()==dspOrder.size());
+        for(size_t i = 0; i < vec.size(); ++i)
+        {
+            dspOrder[i]= static_cast<Audio_proAudioProcessor::DSP_Option>(vec[i]);
+        }
+        return dspOrder;
+     }
+    }
+    static juce::var toVar(const Audio_proAudioProcessor::DSP_Order& order)
+    {
+        juce::MemoryBlock mb;
+        //juce mos uses scoping properly to write to the memory block
+        {
+            juce::MemoryOutputStream mos(mb, false);
+            for(const auto&val :order)
+            {
+                mos.writeInt(static_cast<int>(val));
+            }
+        }
+        return mb;
+    }
+};
 //==============================================================================
 void Audio_proAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
@@ -512,6 +571,9 @@ void Audio_proAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
     //this is the same as the getStateInformation in the editor
+    apvts.state.setProperty("DSP_Order",
+     juce::VariantConverter<Audio_proAudioProcessor::DSP_Order>::toVar(dspOrder), nullptr);
+
     juce::MemoryOutputStream mos(destData, false);
     //write the state of the apvts to the memory block that  init before meaning its peerpspectie of daw
     apvts.state.writeToStream(mos);
@@ -526,6 +588,13 @@ void Audio_proAudioProcessor::setStateInformation (const void* data, int sizeInB
     if(tree.isValid())
     {
         apvts.replaceState(tree);
+        if(apvts.state.hasProperty("DSP_Order"))
+        {
+            auto order= juce::VariantConverter<Audio_proAudioProcessor::DSP_Order>::fromVar(apvts.state.getProperty("DSP_Order"));
+            dspOrderFifo.push(order);
+        }
+        //debugging the apvts state
+        DBG( apvts.state.toXmlString() );
     }
 }
 
