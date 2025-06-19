@@ -512,31 +512,38 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     }
     //array of pointers
     Dsp_pointers dspPointers;
-	dspPointers.fill(nullptr);
+	// dspPointers.fill(nullptr);
+    dspPointers.fill({});
     for(size_t i = 0; i < dspPointers.size(); ++i)
     {
         switch(dspOrder[i])
         {
             case DSP_Option::Phase:
-                dspPointers[i] = &phaser;
+                dspPointers[i].processor = &phaser;
+                dspPointers[i].bypass = phaserBypass->get();
                 break;
             case DSP_Option::Chorus:
-                dspPointers[i] = &chorus;
+                dspPointers[i].processor = &chorus;
+                dspPointers[i].bypass = chorusBypass->get();
                 break;
             case DSP_Option::Overdrive:
-                dspPointers[i] = &overdrive;
+                dspPointers[i].processor = &overdrive;
+                dspPointers[i].bypass = overdriveBypass->get();
                 break;
             case DSP_Option::LadderFilter:
-                dspPointers[i] = &ladderFilter;
+                dspPointers[i].processor = &ladderFilter;
+                dspPointers[i].bypass = ladderFilterBypass->get();
                 break;
             case DSP_Option::GeneralFilter:
-                dspPointers[i] = &generalFilter;
+                dspPointers[i].processor = &generalFilter;
+                dspPointers[i].bypass = generalFilterBypass->get();
                 break;
             case DSP_Option::END_OF_LIST:
                 jassertfalse;
                 break;
             default:
-                dspPointers[i] = nullptr;
+                dspPointers[i].processor = nullptr;
+                dspPointers[i].bypass = false;
         }
     }
 
@@ -547,9 +554,11 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
     for(size_t i = 0; i < dspPointers.size(); ++i)
     {   //need to check if the pointer is not null
-        if(dspPointers[i] != nullptr)
+        if(dspPointers[i].processor != nullptr)
         {
-            dspPointers[i]->process(context);
+            //limting scxope changes
+            juce::ScopedValueSetter<bool> svs(context.isBypassed, dspPointers[i].bypass);
+            dspPointers[i].processor->process(context);
         }
     }
    
@@ -563,8 +572,8 @@ bool Audio_proAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* Audio_proAudioProcessor::createEditor()
 {
-    return new Audio_proAudioProcessorEditor (*this);
-    // return new juce::GenericAudioProcessorEditor(*this);
+    // return new Audio_proAudioProcessorEditor (*this);
+     return new juce::GenericAudioProcessorEditor(*this);
 
 }
 template<>
