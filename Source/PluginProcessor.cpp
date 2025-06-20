@@ -420,6 +420,8 @@ Audio_proAudioProcessor::createParameterLayout()
        juce::NormalisableRange<float>(1.f, 100.f, 0.1f, 1.f),
        1.f,
        ""));
+    name = getLadderFilterBypassName();
+    layout.add(std::make_unique<juce::AudioParameterBool>(juce::ParameterID{name, versionhint}, name, false));
 
     name = getGeneralFilterModeName();
     choices = getGeneralFilterChoices();
@@ -502,12 +504,15 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     //pulling the order trying actually
     while (dspOrderFifo.pull(newDSPOrder))
     {
-
+        #if VERIFY_BYPASS_FUNCTIONALITY
+        jassertfalse;
+        #endif
     }
     //if pulled,replace
-    if(DSP_Order() != newDSPOrder)
+    if(newDSPOrder != DSP_Order())
     {
         dspOrder = newDSPOrder;
+        
 
     }
     //array of pointers
@@ -558,6 +563,22 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         {
             //limting scxope changes
             juce::ScopedValueSetter<bool> svs(context.isBypassed, dspPointers[i].bypass);
+         #if VERIFY_BYPASS_FUNCTIONALITY
+            if( context.isBypassed )
+            {
+                jassertfalse;
+            }
+            
+            if( dspPointers[i].processor == &generalFilter )
+            {
+                continue;
+            }
+        #endif   
+                    if( dspPointers[i].processor == &generalFilter )
+            {
+                continue;
+            }
+        
             dspPointers[i].processor->process(context);
         }
     }
@@ -652,7 +673,22 @@ void Audio_proAudioProcessor::setStateInformation (const void* data, int sizeInB
         }
         //debugging the apvts state
         DBG( apvts.state.toXmlString() );
+
+
+        //debugging the bypass functionality of the plugin
+#if VERIFY_BYPASS_FUNCTIONALITY
+        juce::Timer::callAfterDelay(1000, [this]()
+        {
+            DSP_Order order;
+            order.fill(DSP_Option::LadderFilter);
+            order[0] = DSP_Option::Chorus;
+            
+            chorusBypass->setValueNotifyingHost(1.f);
+            dspOrderFifo.push(order);
+        });
+#endif
     }
+
 }
 
 //==============================================================================
