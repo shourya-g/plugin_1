@@ -135,19 +135,22 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
         &getGeneralFilterGainName
     };
     //connects each parameter to its name function for the apvts for float params
-    for(size_t i = 0; i < floatParams.size(); ++i)
-    {   
-        //get the pointer to the parameter
-        auto ptrtoParam = floatParams[i];
-        //get the parameter from the apvts
-        *ptrtoParam = dynamic_cast<juce::AudioParameterFloat*>(apvts.getParameter(floatnameFuncs[i]()));
-        jassert(*ptrtoParam != nullptr);
-    }
+    initCachedParams<juce::AudioParameterFloat*>(floatParams, floatnameFuncs);
+
     //now for choice params 
-    ladderFilterMode = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getLadderFilterModeName()));
-    jassert(ladderFilterMode != nullptr);
-    generalFilterMode = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(getGeneralFilterModeName()));
-    jassert(generalFilterMode != nullptr);
+       auto choiceParams = std::array
+    {
+        &ladderFilterMode,
+        &generalFilterMode,
+    };
+    
+    auto choiceNameFuncs = std::array
+    {
+        &getLadderFilterModeName,
+        &getGeneralFilterModeName,
+    };
+    
+    initCachedParams<juce::AudioParameterChoice*>(choiceParams, choiceNameFuncs);
 
 
         auto bypassParams = std::array
@@ -168,12 +171,7 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
         &getGeneralFilterBypassName,
     };
 
-    for(size_t i = 0; i < bypassParams.size(); ++i)
-    {
-        auto ptrtoParam = bypassParams[i];
-        *ptrtoParam = dynamic_cast<juce::AudioParameterBool*>(apvts.getParameter(bypassNameFuncs[i]()));
-        jassert(*ptrtoParam != nullptr);
-    }
+    initCachedParams<juce::AudioParameterBool*>(bypassParams, bypassNameFuncs);
 }
   
   
