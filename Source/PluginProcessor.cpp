@@ -73,16 +73,18 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
                        )
 #endif
 {
-    dspOrder=
-    {{
-        DSP_Option::Phase,
-        DSP_Option::Chorus,
-        DSP_Option::Overdrive,
-        DSP_Option::LadderFilter,
-        //enum automatically takes phaser if size difference 
-    }
 
-    };
+    //before it was dspOrder=
+    //{{
+    //    DSP_Option::Phase,
+    //    DSP_Option::Chorus,
+    //    DSP_Option::Overdrive,
+    //    DSP_Option::LadderFilter,
+    //    //enum automatically takes phaser if size difference 
+    for( size_t i = 0; i < static_cast<size_t>(DSP_Option::END_OF_LIST); ++i )
+    {
+        dspOrder[i] = static_cast<DSP_Option>(i);
+    }
 
 
 
@@ -490,7 +492,81 @@ void Audio_proAudioProcessor::MonoChannelDSP::updateDSPFromParams()
     ladderFilter.dsp.setDrive(p.ladderFilterDrive->get());
 
     // need to update genral coeeffs here
-   
+    auto sampleRate = p.getSampleRate();
+    //update generalFilter coefficients
+    //choices: peak, bandpass, notch, allpass
+    auto genMode = p.generalFilterMode->getIndex();
+    auto genHz = p.generalFilterFreqHz->get();
+    auto genQ = p.generalFilterQuality->get();
+    auto genGain = p.generalFilterGaindB->get();
+    
+    bool filterChanged = false;
+    filterChanged |= (filterFreq != genHz);
+    filterChanged |= (filterQ != genQ);
+    filterChanged |= (filterGain != genGain);
+    
+    auto updatedMode = static_cast<GeneralFilterMode>(genMode);
+    filterChanged |= (filterMode != updatedMode);
+    
+    if( filterChanged )
+    {
+        filterMode = updatedMode;
+        filterFreq = genHz;
+        filterQ = genQ;
+        filterGain = genGain;
+        
+        juce::dsp::IIR::Coefficients<float>::Ptr coefficients;
+        switch(filterMode)
+        {
+            case GeneralFilterMode::Peak:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(sampleRate,
+                                                                                   filterFreq,
+                                                                                   filterQ,
+                                                                                   juce::Decibels::decibelsToGain(filterGain));
+                break;
+            }
+            case GeneralFilterMode::Bandpass:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makeBandPass(sampleRate, 
+                                                                                 filterFreq,
+                                                                                 filterQ);
+                break;
+            }
+            case GeneralFilterMode::Notch:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makeNotch(sampleRate,
+                                                                              filterFreq,
+                                                                              filterQ);
+                break;
+            }
+            case GeneralFilterMode::Allpass:
+            {
+                coefficients = juce::dsp::IIR::Coefficients<float>::makeAllPass(sampleRate,
+                                                                                filterFreq,
+                                                                                filterQ);
+                break;
+            }
+            case GeneralFilterMode::END_OF_LIST:
+            { //very imp to have this case shoudk never be hit 
+                jassertfalse;
+                break;
+            }
+        }
+        
+        if( coefficients != nullptr )
+        {
+
+            //DONT WORRY IF THIS JAASSERT HITS JUST COMMENT STHIS OUT LOL 
+           //if( generalFilter.dsp.coefficients->coefficients.size() != coefficients->coefficients.size() )
+           //{
+           //    jassertfalse;    
+           //}
+            //this is the actual update of the coefficients
+            *generalFilter.dsp.coefficients = *coefficients;
+            generalFilter.reset();
+        }
+    }    
 }
 
 

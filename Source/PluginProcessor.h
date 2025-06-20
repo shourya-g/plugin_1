@@ -109,7 +109,15 @@ public:
     juce::AudioParameterFloat* generalFilterGaindB = nullptr;
     juce::AudioParameterBool* generalFilterBypass = nullptr;
    
-    
+   
+    enum class GeneralFilterMode
+    {
+        Peak,
+        Bandpass,
+        Notch,
+        Allpass,
+        END_OF_LIST
+    };
   
    
     DSP_Order dspOrder;
@@ -152,7 +160,9 @@ private:
         
     private:
         Audio_proAudioProcessor& p;
-        
+        GeneralFilterMode filterMode = GeneralFilterMode::END_OF_LIST;
+        //all the parameters for the general filter are outside range of the dsp
+        float filterFreq = 0.f, filterQ = 0.f, filterGain = -100.f;        
     };
 
 
