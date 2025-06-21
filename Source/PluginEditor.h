@@ -22,11 +22,24 @@ struct ExtendedTabbedButtonBar : juce::TabbedButtonBar, juce::DragAndDropTarget,
 {
   ExtendedTabbedButtonBar();
 
-  bool isInterestedInDragSource(const SourceDetails& dragSourceDetails) ;
+  bool isInterestedInDragSource(const SourceDetails& dragSourceDetails) override;
 
+/*  first, itemDragEnter is called when the first mouseEvent happens.
+     as the mouse is moved, itemDragMove() is called.  
+     the tabBarButtons are constrained to the bounds of the ExtendedTabbedButtonBar, 
+     so they'll never be dragged outside of it.
+     itemDragMove() checks the x coordinate of the item being dragged and compares it with its neighbors.
+     tab indexes are swapped if a tab crosses over the middle of another tab.*/
+     //all this needs to be before creat tab button
+ void itemDragEnter (const SourceDetails& dragSourceDetails) override;
+  void itemDragMove (const SourceDetails& dragSourceDetails) override;
+void itemDragExit (const SourceDetails& dragSourceDetails) override;
   void itemDropped(const SourceDetails& dragSourceDetails) override;
+   void mouseDown(const juce::MouseEvent& e) override;
   juce::TabBarButton* createTabButton(const juce::String& tabName, int tabIndex) override;
 
+private:
+    juce::Point<int> previousDraggedTabCenterPosition;
 };
 //we need some kind of horozontal constrrainer (todo)done
 
