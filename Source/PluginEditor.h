@@ -34,13 +34,32 @@ struct ExtendedTabbedButtonBar : juce::TabbedButtonBar, juce::DragAndDropTarget,
   juce::TabBarButton* createTabButton(const juce::String& tabName, int tabIndex) override;
 
 };
-//we need some kind of horozontal constrrainer (todo)
+//we need some kind of horozontal constrrainer (todo)done
 
+struct HorizontalConstrainer : juce::ComponentBoundsConstrainer
+{
+  //the thing that is doing the confinding and the things that is being confined 
+    HorizontalConstrainer(std::function<juce::Rectangle<int>()> confinerBoundsGetter,
+                          std::function<juce::Rectangle<int>()> confineeBoundsGetter);
+    
+    void checkBounds (juce::Rectangle<int>& bounds,
+                      const juce::Rectangle<int>& previousBounds,
+                      const juce::Rectangle<int>& limits,
+                      bool isStretchingTop,
+                      bool isStretchingLeft,
+                      bool isStretchingBottom,
+                      bool isStretchingRight) override;
+    
+private:
+    std::function<juce::Rectangle<int>()> boundsToConfineToGetter;
+    std::function<juce::Rectangle<int>()> boundsOfConfineeGetter;
+};
 
 struct ExtendedTabBarButton: juce::TabBarButton
 {
       ExtendedTabBarButton(const juce::String& name, juce::TabbedButtonBar& owner);
     juce::ComponentDragger dragger;
+    std::unique_ptr<HorizontalConstrainer> constrainer;
    
     
     void mouseDown (const juce::MouseEvent& e){
@@ -48,7 +67,8 @@ struct ExtendedTabBarButton: juce::TabBarButton
     }
 
     void mouseDrag (const juce::MouseEvent& e){
-      dragger.dragComponent(this, e, nullptr);
+      //can add paramterof juce::ractangle here to confine the drag
+      dragger.dragComponent(this, e, constrainer.get());
     }
 
 
