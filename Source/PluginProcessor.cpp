@@ -255,10 +255,88 @@ void Audio_proAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     spec.numChannels = 1;
     leftChannel.prepare(spec);
     rightChannel.prepare(spec);
+        for( auto smoother : getSmoothers() )
+    {
+        smoother->reset(sampleRate, 0.005);
+    }
+    
+    updateSmoothersFromParams(1, SmootherUpdateMode::initialize);
   
     
 }
+void Audio_proAudioProcessor::updateSmoothersFromParams(int numSamplesToSkip, SmootherUpdateMode init)
+{   
+    //refernce?? doubt
+    auto paramsNeedingSmoothing = std::vector
+    {
+        phaserRateHz,
+        phaserDepthPercent,
+        phaserCenterFreqHz, 
+        phaserFeedbackPercent,
+        phaserMixPercent,
+        chorusRateHz,
+        chorusDepthPercent,
+        chorusCenterDelayMs,
+        chorusFeedbackPercent,
+        chorusMixPercent,
+        overdriveSaturationPercent,
+        ladderFilterCutoffHz,
+        ladderFilterResonance,
+        ladderFilterDrive,
+        generalFilterFreqHz,
+        generalFilterQuality,
+        generalFilterGaindB,
+  
+    };
+    
+    auto smoothers = getSmoothers();
+    jassert( smoothers.size() == paramsNeedingSmoothing.size() );
+    
+    for( size_t i = 0; i < smoothers.size(); ++i )
+    {
+        auto smoother = smoothers[i];
+        auto param = paramsNeedingSmoothing[i];
+        
+        if( init == SmootherUpdateMode::initialize )
+            smoother->setCurrentAndTargetValue( param->get() );
+        else
+            smoother->setTargetValue(param->get());
+        
+        smoother->skip(numSamplesToSkip);
+    }
+    
+    
+}
 
+
+
+std::vector<juce::SmoothedValue<float>*> Audio_proAudioProcessor::getSmoothers()
+{
+    auto smoothers = std::vector
+    {
+        //alwasy change do depht is befroe centerfreq in phaser also
+        &phaserRateHzSmoother,
+         &phaserDepthPercentSmoother,
+        &phaserCenterFreqHzSmoother,
+        &phaserFeedbackPercentSmoother,
+        &phaserMixPercentSmoother,
+        &chorusRateHzSmoother,
+        &chorusDepthPercentSmoother,
+        &chorusCenterDelayMsSmoother,
+        &chorusFeedbackPercentSmoother,
+        &chorusMixPercentSmoother,
+        &overdriveSaturationSmoother,
+        &ladderFilterCutoffHzSmoother,
+        &ladderFilterResonanceSmoother,
+        &ladderFilterDriveSmoother,
+        &generalFilterFreqHzSmoother,
+        &generalFilterQualitySmoother,
+        &generalFilterGainSmoother,
+  
+    };
+    
+    return smoothers;
+}
 
 void Audio_proAudioProcessor::MonoChannelDSP::prepare(const juce::dsp::ProcessSpec &spec)
 {
@@ -471,34 +549,34 @@ Audio_proAudioProcessor::createParameterLayout()
 void Audio_proAudioProcessor::MonoChannelDSP::updateDSPFromParams()
 {
        //might have to see the layout to confirm that the rnages of all paramters are correct
-    phaser.dsp.setRate(p.phaserRateHz->get());
-    phaser.dsp.setDepth(p.phaserDepthPercent->get());
-    phaser.dsp.setCentreFrequency(p.phaserCenterFreqHz->get());
-    phaser.dsp.setFeedback(p.phaserFeedbackPercent->get());
-    phaser.dsp.setMix(p.phaserMixPercent->get());
+    phaser.dsp.setRate(p.phaserRateHzSmoother.getCurrentValue());
+    phaser.dsp.setDepth(p.phaserDepthPercentSmoother.getCurrentValue());
+    phaser.dsp.setCentreFrequency(p.phaserCenterFreqHzSmoother.getCurrentValue());
+    phaser.dsp.setFeedback(p.phaserFeedbackPercentSmoother.getCurrentValue());
+    phaser.dsp.setMix(p.phaserMixPercentSmoother.getCurrentValue());
 
-    chorus.dsp.setRate(p.chorusRateHz->get());
-    chorus.dsp.setDepth(p.chorusDepthPercent->get());
-    chorus.dsp.setCentreDelay(p.chorusCenterDelayMs->get());
-    chorus.dsp.setFeedback(p.chorusFeedbackPercent->get());
-    chorus.dsp.setMix(p.chorusMixPercent->get());
+    chorus.dsp.setRate(p.chorusRateHzSmoother.getCurrentValue());
+    chorus.dsp.setDepth(p.chorusDepthPercentSmoother.getCurrentValue());
+    chorus.dsp.setCentreDelay(p.chorusCenterDelayMsSmoother.getCurrentValue());
+    chorus.dsp.setFeedback(p.chorusFeedbackPercentSmoother.getCurrentValue());
+    chorus.dsp.setMix(p.chorusMixPercentSmoother.getCurrentValue());
 
-    overdrive.dsp.setDrive(p.overdriveSaturationPercent->get());
+    overdrive.dsp.setDrive(p.overdriveSaturationSmoother.getCurrentValue());
     
     ladderFilter.dsp.setMode(
     static_cast<juce::dsp::LadderFilterMode>(p.ladderFilterMode->getIndex()));
-    ladderFilter.dsp.setCutoffFrequencyHz(p.ladderFilterCutoffHz->get());
-    ladderFilter.dsp.setResonance(p.ladderFilterResonance->get());
-    ladderFilter.dsp.setDrive(p.ladderFilterDrive->get());
+    ladderFilter.dsp.setCutoffFrequencyHz(p.ladderFilterCutoffHzSmoother.getCurrentValue());
+    ladderFilter.dsp.setResonance(p.ladderFilterResonanceSmoother.getCurrentValue());
+    ladderFilter.dsp.setDrive(p.ladderFilterDriveSmoother.getCurrentValue());
 
     // need to update genral coeeffs here
     auto sampleRate = p.getSampleRate();
     //update generalFilter coefficients
     //choices: peak, bandpass, notch, allpass
     auto genMode = p.generalFilterMode->getIndex();
-    auto genHz = p.generalFilterFreqHz->get();
-    auto genQ = p.generalFilterQuality->get();
-    auto genGain = p.generalFilterGaindB->get();
+    auto genHz = p.generalFilterFreqHzSmoother.getCurrentValue();
+    auto genQ = p.generalFilterQualitySmoother.getCurrentValue();
+    auto genGain = p.generalFilterGainSmoother.getCurrentValue();
     
     bool filterChanged = false;
     filterChanged |= (filterFreq != genHz);
@@ -610,12 +688,47 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         
 
     }
+
+
+    const auto numSamples = buffer.getNumSamples(); // (1)
+    auto samplesRemaining = numSamples;
+    auto maxSamplesToProcess = juce::jmin(samplesRemaining, 64); // (2)
+
     auto block = juce::dsp::AudioBlock<float>(buffer);
-   leftChannel.process(block.getSingleChannelBlock(0), dspOrder);
-   rightChannel.process(block.getSingleChannelBlock(1), dspOrder);
+      size_t startSample = 0; 
+          while( samplesRemaining > 0 ) // (3)
+    {
+        /*
+         The first time through this loop samplesToProcess will be 64, because maxSmplesToProcess is set to 64, and samplesRamaining is 72.
+         the 2nd time this loop runs, samplesToProcess will be 8, because the previous loop consumed 64 of the 72 samples.
+         */
+
+        //figure out how many samples to actually process.
+        auto samplesToProcess = juce::jmin(samplesRemaining, maxSamplesToProcess); // (4)
+        //advance each smoother 'samplesToProcess' samples
+        updateSmoothersFromParams(samplesToProcess, SmootherUpdateMode::liveInRealtime); // (5)
+        
+        //update the DSP
+        leftChannel.updateDSPFromParams();  // (6)
+        rightChannel.updateDSPFromParams();
+        
+        //create a sub block from the buffer, and
+        auto subBlock = block.getSubBlock(startSample, samplesToProcess); // (7)
+        
+        //now process
+        leftChannel.process(subBlock.getSingleChannelBlock(0), dspOrder); // (8)
+        rightChannel.process(subBlock.getSingleChannelBlock(1), dspOrder);
+        
+        startSample += samplesToProcess; // (9)
+        samplesRemaining -= samplesToProcess;
+    }
+
+
+
    
    
 }
+
 
 void Audio_proAudioProcessor::MonoChannelDSP::process(juce::dsp::AudioBlock<float> block, const DSP_Order &dspOrder)
 {
