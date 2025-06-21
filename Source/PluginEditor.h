@@ -34,6 +34,8 @@ struct ExtendedTabbedButtonBar : juce::TabbedButtonBar, juce::DragAndDropTarget,
   juce::TabBarButton* createTabButton(const juce::String& tabName, int tabIndex) override;
 
 };
+//we need some kind of horozontal constrrainer (todo)
+
 
 struct ExtendedTabBarButton: juce::TabBarButton
 {
