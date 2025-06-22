@@ -38,13 +38,25 @@ void itemDragExit (const SourceDetails& dragSourceDetails) override;
    void mouseDown(const juce::MouseEvent& e) override;
   juce::TabBarButton* createTabButton(const juce::String& tabName, int tabIndex) override;
 
+  struct Listener
+    {
+        virtual ~Listener() = default;
+        virtual void tabOrderChanged( Audio_proAudioProcessor::DSP_Order newOrder ) = 0;
+        virtual void selectedTabChanged(int newCurrentTabIndex) = 0;
+    };
+     void addListener(Listener* l);
+    void removeListener(Listener* l);
+
+
   // Helper functions for drag and drop
   juce::TabBarButton* findDraggedItem(const SourceDetails& dragSourceDetails);
   int findDraggedItemIndex(const SourceDetails& dragSourceDetails);
   juce::Array<juce::TabBarButton*> getTabs();
+  
 
 private:
     juce::Point<int> previousDraggedTabCenterPosition; 
+     juce::ListenerList<Listener> listeners;
 };
 //need some kind of horozontal constrrainer (todo)done
 
@@ -69,8 +81,8 @@ private:
 
 struct ExtendedTabBarButton: juce::TabBarButton
 {
-      ExtendedTabBarButton(const juce::String& name, juce::TabbedButtonBar& owner);
-    juce::ComponentDragger dragger;
+     ExtendedTabBarButton(const juce::String& name, juce::TabbedButtonBar& owner, Audio_proAudioProcessor::DSP_Option dspOption);
+     juce::ComponentDragger dragger;
     std::unique_ptr<HorizontalConstrainer> constrainer;
    
     
@@ -78,12 +90,17 @@ struct ExtendedTabBarButton: juce::TabBarButton
 
     void mouseDrag (const juce::MouseEvent& e) override;
 
+    Audio_proAudioProcessor::DSP_Option getOption() const { return option; }
+
+private:
+//constrcutor also needed the dsp option to be passed in
+    Audio_proAudioProcessor::DSP_Option option;
 
 };
 
 
 
-class Audio_proAudioProcessorEditor  : public juce::AudioProcessorEditor
+class Audio_proAudioProcessorEditor  : public juce::AudioProcessorEditor, ExtendedTabbedButtonBar::Listener
 {
 public:
     Audio_proAudioProcessorEditor (Audio_proAudioProcessor&);
@@ -92,6 +109,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    virtual void tabOrderChanged( Audio_proAudioProcessor::DSP_Order newOrder ) override;
+    virtual void selectedTabChanged(int newCurrentTabIndex) override;
 
 private:
     // This reference is provided as a quick way for your editor to
