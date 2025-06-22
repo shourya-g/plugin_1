@@ -86,7 +86,7 @@ Audio_proAudioProcessor::Audio_proAudioProcessor()
         dspOrder[i] = static_cast<DSP_Option>(i);
     }
 
-
+    restoredDspOrderFifo.push(dspOrder);
 
     //array of pointers to the parameters
     auto floatParams= std::array
