@@ -13,7 +13,7 @@
 
 static juce::String getNameFromDSPOption(Audio_proAudioProcessor::DSP_Option option)
 {
-    switch (option)
+    switch (option)     
     {
         case Audio_proAudioProcessor::DSP_Option::Phase:
             return "PHASE";
@@ -109,6 +109,18 @@ void ExtendedTabBarButton::mouseDown (const juce::MouseEvent& e)
 void ExtendedTabBarButton::mouseDrag (const juce::MouseEvent& e)
 {
     dragger.dragComponent (this, e, constrainer.get());
+}
+
+int ExtendedTabBarButton::getBestTabLength(int depth)
+{
+        auto bestWidth = getLookAndFeel().getTabButtonBestWidth(*this, depth);
+    
+    auto& bar = getTabbedButtonBar();
+   
+    // choose whichever value is bigger, the bestWidth, or an equal division of the bar's width based on the number of tabs in the bar.
+     
+    return juce::jmax(bestWidth,
+                      bar.getWidth() / bar.getNumTabs());
 }
 
 ////////
@@ -323,7 +335,7 @@ Audio_proAudioProcessorEditor::Audio_proAudioProcessorEditor (Audio_proAudioProc
     addAndMakeVisible(dspOrderButton);
     addAndMakeVisible(tabbedComponent);
     tabbedComponent.addListener(this);
-    setSize (400, 300);
+    setSize (600, 400);
 }
 
 Audio_proAudioProcessorEditor::~Audio_proAudioProcessorEditor()
