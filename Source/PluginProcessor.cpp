@@ -308,9 +308,77 @@ void Audio_proAudioProcessor::updateSmoothersFromParams(int numSamplesToSkip, Sm
     
 }
 
+std::vector<juce::RangedAudioParameter *> Audio_proAudioProcessor::getparamsforoption(DSP_Option option)
+{
+     // creating a function that returns a vector of audio parameters for a given DSP option
+     // This allows the GUI to know which parameters to display for each DSP effect
+     // The function takes a DSP_Option enum and returns all the relevant parameters for that effect
+     // This is used by the DSP_Gui to rebuild its interface when switching between different DSP effects
+     switch( option )
+    {
+        case DSP_Option::Phase:
+        {
+            return
+            {
+                phaserRateHz,
+                phaserCenterFreqHz,
+                phaserDepthPercent,
+                phaserFeedbackPercent,
+                phaserMixPercent,
+                phaserBypass,
+            };
+        }
+        case DSP_Option::Chorus:
+        {
+            return
+            {
+                chorusRateHz,
+                chorusDepthPercent,
+                chorusCenterDelayMs,
+                chorusFeedbackPercent,
+                chorusMixPercent,
+                chorusBypass,
+            };
+        }
+        case DSP_Option::Overdrive:
+        {
+            return
+            {
+                overdriveSaturationPercent,
+                overdriveBypass,
+            };
+        }
+        case DSP_Option::LadderFilter:
+        {
+            return
+            {
+                ladderFilterMode,
+                ladderFilterCutoffHz,
+                ladderFilterResonance,
+                ladderFilterDrive,
+                ladderFilterBypass,
+            };
+        }
+        case DSP_Option::GeneralFilter:
+        {
+            return
+            {
+                generalFilterMode,
+                generalFilterFreqHz,
+                generalFilterQuality,
+                generalFilterGaindB,
+                generalFilterBypass,
+            };
+        }
+        case DSP_Option::END_OF_LIST:
+            break;
+    }
+    
+    jassertfalse;
+    return { }; 
+}
 
-
-std::vector<juce::SmoothedValue<float>*> Audio_proAudioProcessor::getSmoothers()
+std::vector<juce::SmoothedValue<float> *> Audio_proAudioProcessor::getSmoothers()
 {
     auto smoothers = std::vector
     {
