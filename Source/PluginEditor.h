@@ -120,7 +120,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Audio_proAudioProcessor& audioProcessor;
-   juce::TextButton dspOrderButton{ "DSP Order" };
+
    ExtendedTabbedButtonBar tabbedComponent;
    void addTabsFromDSPOrder(Audio_proAudioProcessor::DSP_Order);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Audio_proAudioProcessorEditor)
