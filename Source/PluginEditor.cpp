@@ -335,6 +335,7 @@ Audio_proAudioProcessorEditor::Audio_proAudioProcessorEditor (Audio_proAudioProc
     addAndMakeVisible(dspOrderButton);
     addAndMakeVisible(tabbedComponent);
     tabbedComponent.addListener(this);
+    startTimerHz(30);
     setSize (600, 400);
 }
 
@@ -388,4 +389,40 @@ void Audio_proAudioProcessorEditor::selectedTabChanged(int newCurrentTabIndex)
 {
     DBG("Audio_proAudioProcessorEditor::selectedTabChanged: " << newCurrentTabIndex);
     // Handle tab selection change if needed
+}
+void Audio_proAudioProcessorEditor::addTabsFromDSPOrder(Audio_proAudioProcessor::DSP_Order newOrder)
+{
+        tabbedComponent.clearTabs();
+    for( auto v : newOrder ) 
+    {
+        tabbedComponent.addTab(getNameFromDSPOption(v), juce::Colours::white, -1);
+    }
+
+    audioProcessor.dspOrderFifo.push(newOrder);
+
+}
+void Audio_proAudioProcessorEditor::timerCallback()
+{
+    if(audioProcessor.restoredDspOrderFifo.getNumAvailableForReading() ==0)
+    return;
+
+    
+        using T = Audio_proAudioProcessor::DSP_Order;
+    T newOrder;
+    newOrder.fill(Audio_proAudioProcessor::DSP_Option::END_OF_LIST);
+    auto empty = newOrder;
+    while( audioProcessor.restoredDspOrderFifo.pull(newOrder) )
+    {
+        ; //do nothing   you'll do something with the most recently pulled order next.
+    }
+    
+    if( newOrder != empty ) //if you pulled nothing, neworder will be filled with END_OF_LIST
+    {
+        //don't create tabs if neworder is filled with END_OF_LIST
+        addTabsFromDSPOrder(newOrder);
+    }
+    
+
+    
+
 }

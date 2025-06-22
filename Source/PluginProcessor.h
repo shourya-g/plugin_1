@@ -73,7 +73,7 @@ public:
      createParameterLayout()};
     using DSP_Order = std::array<DSP_Option, static_cast<int>(DSP_Option::END_OF_LIST)>;
     
-    SimpleMBComp::Fifo<DSP_Order> dspOrderFifo;
+    SimpleMBComp::Fifo<DSP_Order> dspOrderFifo,restoredDspOrderFifo;
     
     /*
     phaser

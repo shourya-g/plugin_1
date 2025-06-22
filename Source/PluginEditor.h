@@ -101,7 +101,9 @@ private:
 
 
 
-class Audio_proAudioProcessorEditor  : public juce::AudioProcessorEditor, ExtendedTabbedButtonBar::Listener
+class Audio_proAudioProcessorEditor  : public juce::AudioProcessorEditor, 
+ExtendedTabbedButtonBar::Listener,
+juce::Timer
 {
 public:
     Audio_proAudioProcessorEditor (Audio_proAudioProcessor&);
@@ -110,6 +112,7 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
+    void timerCallback() override;
     virtual void tabOrderChanged( Audio_proAudioProcessor::DSP_Order newOrder ) override;
     virtual void selectedTabChanged(int newCurrentTabIndex) override;
 
@@ -119,5 +122,6 @@ private:
     Audio_proAudioProcessor& audioProcessor;
    juce::TextButton dspOrderButton{ "DSP Order" };
    ExtendedTabbedButtonBar tabbedComponent;
+   void addTabsFromDSPOrder(Audio_proAudioProcessor::DSP_Order);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Audio_proAudioProcessorEditor)
 };
