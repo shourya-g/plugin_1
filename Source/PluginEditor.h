@@ -38,10 +38,15 @@ void itemDragExit (const SourceDetails& dragSourceDetails) override;
    void mouseDown(const juce::MouseEvent& e) override;
   juce::TabBarButton* createTabButton(const juce::String& tabName, int tabIndex) override;
 
+  // Helper functions for drag and drop
+  juce::TabBarButton* findDraggedItem(const SourceDetails& dragSourceDetails);
+  int findDraggedItemIndex(const SourceDetails& dragSourceDetails);
+  juce::Array<juce::TabBarButton*> getTabs();
+
 private:
-    juce::Point<int> previousDraggedTabCenterPosition;
+    juce::Point<int> previousDraggedTabCenterPosition; 
 };
-//we need some kind of horozontal constrrainer (todo)done
+//need some kind of horozontal constrrainer (todo)done
 
 struct HorizontalConstrainer : juce::ComponentBoundsConstrainer
 {

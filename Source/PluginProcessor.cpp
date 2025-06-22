@@ -800,7 +800,7 @@ bool Audio_proAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* Audio_proAudioProcessor::createEditor()
 {
      return new Audio_proAudioProcessorEditor (*this);
-    //  return new juce::GenericAudioProcessorEditor(*this);
+    // return new juce::GenericAudioProcessorEditor(*this);
 
 }
 template<>

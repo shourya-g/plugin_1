@@ -116,72 +116,73 @@ void ExtendedTabbedButtonBar::itemDragEnter(const SourceDetails &dragSourceDetai
 
 void ExtendedTabbedButtonBar::itemDragMove(const SourceDetails &dragSourceDetails)
 {
-    if( auto tabButtonBeingDragged = dynamic_cast<ExtendedTabBarButton*>( dragSourceDetails.sourceComponent.get() ) )
+    auto tabButtonBeingDragged = findDraggedItem(dragSourceDetails);
+    if (tabButtonBeingDragged == nullptr)
+        return;
+        
+    auto idx = findDraggedItemIndex(dragSourceDetails);
+    if (idx == -1)
     {
-        
-        /* the mouseDown function takes a snapshot of the tab order, updating the tabs array(whis is proivate but).
-         itemDragMove re-orders this array and reposition the tabs manually.
-         the itemDropped() function is where the calls to moveTab() actually occur tho so made sure that we move it before dropping alawys
-         
-         if the center of the dragged tab transitions from < nextTab.X to >= nextTab.x (from left to right)
-            swap(idx, nextTabIndex)
-            This handles dragging the tab from left to right.
-         if the center of the dragged tab transitions from > previousTab.Right to <= previousTab.right (from right to left)
-            swap(idx, previousTabIndex)
-            this handles dragging the tab from right to left.*/
-        auto idx = indexOfTabButton(tabButtonBeingDragged);
-        if( idx == -1 )
-        {
-            DBG("failed to find tab being dragged in list of tabs");
-            jassertfalse;
-            return;
-        }
-        
-        auto previousTabIndex = idx - 1;
-        auto nextTabIndex = idx + 1;
-        auto previousTab = juce::isPositiveAndBelow(previousTabIndex, getNumTabs()) ?
-                            getTabButton(previousTabIndex) :
-                            nullptr;
-        auto nextTab = juce::isPositiveAndBelow(nextTabIndex, getNumTabs()) ? getTabButton(nextTabIndex) : nullptr;
-        
-        auto centerX = tabButtonBeingDragged->getBounds().getCentreX();
-        
-        if( centerX > previousDraggedTabCenterPosition.x )
-        {
-            //transitioning right.
-            if( nextTab != nullptr )
-            {
-                if( previousDraggedTabCenterPosition.x < nextTab->getX() && nextTab->getX() <= centerX )
-                {
-                    DBG( "swapping [" << idx << "] " << tabButtonBeingDragged->getName() << " with [" << nextTabIndex << "] " << nextTab->getName() );
-                    nextTab->setBounds(nextTab->getBounds().withX(previousTab != nullptr ?
-                                                                  previousTab->getRight() + 1 :
-                                                                  0));
-                    moveTab(idx, nextTabIndex);
-                }
-            }
-        }
-        else if( centerX < previousDraggedTabCenterPosition.x )
-        {
-            //transitioning left
-            if( previousTab != nullptr )
-            {
-                if( previousDraggedTabCenterPosition.x > previousTab->getRight() && centerX <= previousTab->getRight() )
-                {
-                    DBG( "swapping [" << idx << "] " << tabButtonBeingDragged->getName() << " with [" << previousTabIndex << "] " << previousTab->getName() );
-                    
-                    previousTab->setBounds(previousTab->getBounds().withX(nextTab != nullptr ?
-                                                                          nextTab->getX() - previousTab->getWidth() - 1 :
-                                                                          getWidth() - previousTab->getWidth() - 1));
-                    moveTab(idx, previousTabIndex);
-                }
-            }
-        }
-
-        tabButtonBeingDragged->toFront(true);
-        
-        previousDraggedTabCenterPosition = tabButtonBeingDragged->getBounds().getCentre();
+        DBG("failed to find tab being dragged in list of tabs");
+        jassertfalse;
+        return;
     }
+    
+    /* the mouseDown function takes a snapshot of the tab order, updating the tabs array(whis is proivate but).
+     itemDragMove re-orders this array and reposition the tabs manually.
+     the itemDropped() function is where the calls to moveTab() actually occur tho so made sure that we move it before dropping alawys
+     
+     if the center of the dragged tab transitions from < nextTab.X to >= nextTab.x (from left to right)
+        swap(idx, nextTabIndex)
+        This handles dragging the tab from left to right.
+     if the center of the dragged tab transitions from > previousTab.Right to <= previousTab.right (from right to left)
+        swap(idx, previousTabIndex)
+        this handles dragging the tab from right to left.*/
+    
+    auto previousTabIndex = idx - 1;
+    auto nextTabIndex = idx + 1;
+    auto previousTab = juce::isPositiveAndBelow(previousTabIndex, getNumTabs()) ?
+                        getTabButton(previousTabIndex) :
+                        nullptr;
+    auto nextTab = juce::isPositiveAndBelow(nextTabIndex, getNumTabs()) ? getTabButton(nextTabIndex) : nullptr;
+    
+    auto centerX = tabButtonBeingDragged->getBounds().getCentreX();
+    
+    if( centerX > previousDraggedTabCenterPosition.x )
+    {
+        //transitioning right.
+        if( nextTab != nullptr )
+        {
+            if( previousDraggedTabCenterPosition.x < nextTab->getX() && nextTab->getX() <= centerX )
+            {
+                DBG( "swapping [" << idx << "] " << tabButtonBeingDragged->getName() << " with [" << nextTabIndex << "] " << nextTab->getName() );
+                nextTab->setBounds(nextTab->getBounds().withX(previousTab != nullptr ?
+                                                              previousTab->getRight() + 1 :
+                                                              0));
+                moveTab(idx, nextTabIndex);
+            }
+        }
+    }
+    else if( centerX < previousDraggedTabCenterPosition.x )
+    {
+        //transitioning left
+        if( previousTab != nullptr )
+        {
+            if( previousDraggedTabCenterPosition.x > previousTab->getRight() && centerX <= previousTab->getRight() )
+            {
+                DBG( "swapping [" << idx << "] " << tabButtonBeingDragged->getName() << " with [" << previousTabIndex << "] " << previousTab->getName() );
+                
+                previousTab->setBounds(previousTab->getBounds().withX(nextTab != nullptr ?
+                                                                      nextTab->getX() - previousTab->getWidth() - 1 :
+                                                                      getWidth() - previousTab->getWidth() - 1));
+                moveTab(idx, previousTabIndex);
+            }
+        }
+    }
+
+    tabButtonBeingDragged->toFront(true);
+    
+    previousDraggedTabCenterPosition = tabButtonBeingDragged->getBounds().getCentre();
 }
 void ExtendedTabbedButtonBar::itemDragExit(const SourceDetails &dragSourceDetails)
 {
@@ -191,7 +192,8 @@ void ExtendedTabbedButtonBar::itemDragExit(const SourceDetails &dragSourceDetail
 void ExtendedTabbedButtonBar::itemDropped (const SourceDetails& dragSourceDetails) 
 {
   DBG("ExtendedTabbedButtonBar::itemDropped");
-
+  //dropps correctly in place and bar resized
+    resized();
 }
 
 void ExtendedTabbedButtonBar::mouseDown(const juce::MouseEvent &e)
@@ -215,6 +217,32 @@ juce::TabBarButton* ExtendedTabbedButtonBar::createTabButton(const juce::String&
     return etbb.release();
 }
 
+// Helper functions for drag and drop
+juce::TabBarButton* ExtendedTabbedButtonBar::findDraggedItem(const SourceDetails& dragSourceDetails)
+{
+    return dynamic_cast<ExtendedTabBarButton*>(dragSourceDetails.sourceComponent.get());
+}
+
+int ExtendedTabbedButtonBar::findDraggedItemIndex(const SourceDetails& dragSourceDetails)
+{
+    if (auto draggedItem = findDraggedItem(dragSourceDetails))
+        return indexOfTabButton(draggedItem);
+    return -1;
+}
+
+juce::Array<juce::TabBarButton*> ExtendedTabbedButtonBar::getTabs()
+{
+    juce::Array<juce::TabBarButton*> tabs;
+    auto numTabs = getNumTabs();
+    tabs.resize(numTabs);
+    
+    for (int i = 0; i < numTabs; ++i)
+    {
+        tabs.getReference(i) = getTabButton(i);
+    }
+    
+    return tabs;
+}
 
 Audio_proAudioProcessorEditor::Audio_proAudioProcessorEditor (Audio_proAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
