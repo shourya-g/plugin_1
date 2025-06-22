@@ -99,7 +99,29 @@ private:
 
 };
 
+struct DSP_Gui : juce::Component
+{
+    DSP_Gui()  {}
+    ~DSP_Gui() {}
+    void resized() override {}
+    void paint( juce::Graphics& g ) override {g.fillAll(juce::Colours::black);}
 
+    
+    void rebuildInterface( std::vector< juce::RangedAudioParameter* > params );
+    // void toggleSliderEnablement(bool enabled);
+    
+    // Audio_proAudioProcessor& processor;
+    std::vector< std::unique_ptr<juce::Slider> > sliders;
+    // std::vector< std::unique_ptr<juce::ComboBox> > comboBoxes;
+    // std::vector< std::unique_ptr<juce::Button> > buttons;
+    
+    std::vector< std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> > sliderAttachments;
+    // std::vector< std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> > comboBoxAttachments;
+    // std::vector< std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> > buttonAttachments;
+    
+    // std::vector< juce::RangedAudioParameter* > currentParams;
+};
+//==
 
 class Audio_proAudioProcessorEditor  : public juce::AudioProcessorEditor, 
 ExtendedTabbedButtonBar::Listener,
@@ -120,7 +142,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Audio_proAudioProcessor& audioProcessor;
-
+    DSP_Gui dspGui;
    ExtendedTabbedButtonBar tabbedComponent;
    void addTabsFromDSPOrder(Audio_proAudioProcessor::DSP_Order);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Audio_proAudioProcessorEditor)
