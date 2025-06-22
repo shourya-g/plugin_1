@@ -742,15 +742,18 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     rightChannel.updateDSPFromParams();
 
     auto newDSPOrder= DSP_Order();
+    newDSPOrder.fill(DSP_Option::END_OF_LIST);  // Initialize with sentinel value
+    auto hasNewOrder = false;
     //pulling the order trying actually
     while (dspOrderFifo.pull(newDSPOrder))
     {
+        hasNewOrder = true;
         #if VERIFY_BYPASS_FUNCTIONALITY
         jassertfalse;
         #endif
     }
     //if pulled,replace
-    if(newDSPOrder != DSP_Order())
+    if(hasNewOrder)
     {
         dspOrder = newDSPOrder;
         
@@ -943,6 +946,7 @@ void Audio_proAudioProcessor::setStateInformation (const void* data, int sizeInB
         if(apvts.state.hasProperty("DSP_Order"))
         {
             auto order= juce::VariantConverter<Audio_proAudioProcessor::DSP_Order>::fromVar(apvts.state.getProperty("DSP_Order"));
+            dspOrder = order;  // Set the member variable directly
             dspOrderFifo.push(order);
             //for gui 
             restoredDspOrderFifo.push(order);

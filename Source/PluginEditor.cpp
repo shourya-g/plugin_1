@@ -302,6 +302,101 @@ void ExtendedTabbedButtonBar::removeListener(Listener* l)
 { 
     listeners.remove(l); 
 }
+void DSP_Gui::resized()
+{
+
+   // to fit the DSP_Gui component's bounds. It lays out buttons at the top, comboBoxes on the left,
+   // and sliders in the remaining area. The logic checks if each vector is empty before laying out
+   // the corresponding controls, and divides the available space evenly among the controls of each type.
+   auto bounds = getLocalBounds();
+    if( buttons.empty() == false )
+    {
+        auto buttonArea = bounds.removeFromTop(30);
+        auto w = buttonArea.getWidth() / buttons.size();
+        for( auto& button : buttons )
+        {
+            button->setBounds(buttonArea.removeFromLeft( static_cast<int>(w) ));
+        }
+    }
+    
+    if( comboBoxes.empty() == false )
+    {
+        auto comboBoxArea = bounds.removeFromLeft(bounds.getWidth() / 4);
+        auto h = juce::jmin(comboBoxArea.getHeight() / static_cast<int>(comboBoxes.size()), 30);
+        for( auto& cb : comboBoxes )
+        {
+            cb->setBounds(comboBoxArea.removeFromTop( static_cast<int>(h) ));
+        }
+    }
+    
+    if( sliders.empty() == false )
+    {
+        auto w = bounds.getWidth() / sliders.size();
+        for( auto& slider : sliders )
+        {
+            slider->setBounds(bounds.removeFromLeft( static_cast<int>(w) ));
+        }
+    }
+}
+void DSP_Gui::paint( juce::Graphics& g )
+{
+    g.fillAll(juce::Colours::black);
+}
+void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > params )
+{
+    //float is sliders
+    //bool is checkboxes
+    //int is comboboxes
+        sliderAttachments.clear();
+    comboBoxAttachments.clear();
+    buttonAttachments.clear();
+    
+    sliders.clear();
+    comboBoxes.clear();
+    buttons.clear();
+    for(size_t i = 0; i < params.size(); i++)
+    {
+
+        auto p = params[i];
+
+                if( auto* choice = dynamic_cast<juce::AudioParameterChoice*>(params[i]) )
+        {
+            //make a combobox
+            comboBoxes.push_back( std::make_unique<juce::ComboBox>());
+            auto& cb = *comboBoxes.back();
+            cb.addItemList(choice->choices, 1);
+            comboBoxAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(processor.apvts, p->getName(100), cb));
+        }
+        else if( auto* toggle = dynamic_cast<juce::AudioParameterBool*>(params[i]) )
+        {
+
+          
+            buttons.push_back(std::make_unique<juce::ToggleButton>("Bypass"));
+            auto& btn = *buttons.back();
+            buttonAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(processor.apvts, p->getName(100), btn));
+        }
+        else
+        {
+            //it's a float or int param make a slider
+            sliders.push_back(std::make_unique<juce::Slider>());
+            auto& slider = *sliders.back();
+            
+            slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
+            sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.apvts, p->getName(100), slider));
+        }
+    }
+     for( auto& slider : sliders )
+        addAndMakeVisible(slider.get());
+    for( auto& cb : comboBoxes)
+        addAndMakeVisible(cb.get());
+    for( auto& btn : buttons )
+        addAndMakeVisible(btn.get());
+    
+    resized();
+
+}
+
+
 
 Audio_proAudioProcessorEditor::Audio_proAudioProcessorEditor (Audio_proAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
@@ -359,7 +454,8 @@ void Audio_proAudioProcessorEditor::tabOrderChanged( Audio_proAudioProcessor::DS
     
     // Also print to console for guaranteed visibility
     std::cout << "DSP ORDER CHANGED: " << orderString << std::endl;
-    
+    rebuildInterface();
+    // Only push to processor when user actually changes the order, not during initialization
     audioProcessor.dspOrderFifo.push(newOrder);
 }
 
@@ -375,9 +471,22 @@ void Audio_proAudioProcessorEditor::addTabsFromDSPOrder(Audio_proAudioProcessor:
     {
         tabbedComponent.addTab(getNameFromDSPOption(v), juce::Colours::white, -1);
     }
+ 
+    rebuildInterface();
+    // Don't push back to processor - it already has the correct state
 
-    audioProcessor.dspOrderFifo.push(newOrder);
-
+}
+void Audio_proAudioProcessorEditor::rebuildInterface()
+{
+   auto currenttabindex = tabbedComponent.getCurrentTabIndex();
+   auto currenttab = tabbedComponent.getTabButton(currenttabindex);
+   if( auto etbb = dynamic_cast<ExtendedTabBarButton*>(currenttab) )
+   {
+        auto dspoption = etbb->getOption();
+        auto params = audioProcessor.getparamsforoption(dspoption);
+        jassert(params.size() > 0);
+        dspGui.rebuildInterface(params);
+   }
 }
 void Audio_proAudioProcessorEditor::timerCallback()
 {
