@@ -11,6 +11,10 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include <LookAndFeel.h>
+
+// Forward declaration
+struct CustomLookAndFeel;
+
 //==============================================================================
 /**
 */
@@ -163,7 +167,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Audio_proAudioProcessor& audioProcessor;
-    ::LookAndFeel lookAndFeel;
+    std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
     DSP_Gui dspGui{audioProcessor};
    ExtendedTabbedButtonBar tabbedComponent{audioProcessor};
    static constexpr int meterWidth = 80;
