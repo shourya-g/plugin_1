@@ -570,7 +570,7 @@ DSP_Gui::DSP_Gui(Audio_proAudioProcessor& proc) : processor(proc),
 void DSP_Gui::resized()
 {
     auto bounds = getModuleBackgroundArea(getLocalBounds());
-    
+
     // Reserve space for meters at the left and right with better spacing
     static constexpr int meterWidth = 32;
     static constexpr int meterPadding = 4;
@@ -707,7 +707,9 @@ Audio_proAudioProcessorEditor::Audio_proAudioProcessorEditor (Audio_proAudioProc
     addAndMakeVisible(dspGui);
     tabbedComponent.addListener(this);
     startTimerHz(30);
-    setSize (770, 400);
+    setSize (800, 600);
+    addAndMakeVisible(analyzer);
+
 }
 
 Audio_proAudioProcessorEditor::~Audio_proAudioProcessorEditor()
@@ -742,13 +744,19 @@ void Audio_proAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
-    auto leftmeterarea= bounds.removeFromLeft(meterWidth);
-    auto rightmeterarea= bounds.removeFromRight(meterWidth);
-    juce::ignoreUnused(leftmeterarea, rightmeterarea);
-    // dspOrderButton.setBounds(bounds.removeFromTop(30).withSizeKeepingCentre(150,30));
-   
+    
+    // Better proportions: 50% analyzer, 30% controls, 20% for tabs/spacing
+    auto analyzerArea = bounds.removeFromTop(bounds.getHeight() * 0.5);
+    auto spacer = bounds.removeFromTop(5); // Small gap
+    juce::ignoreUnused(spacer);
+    
     tabbedComponent.setBounds(bounds.removeFromTop(30));
+    
+    // Give remaining space to DSP controls
     dspGui.setBounds(bounds);
+    
+    // Add some padding around analyzer for better visual integration
+    analyzer.setBounds(analyzerArea.reduced(4));
 }
 void Audio_proAudioProcessorEditor::tabOrderChanged( Audio_proAudioProcessor::DSP_Order newOrder )
 {

@@ -261,8 +261,8 @@ void Audio_proAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     }
     
     updateSmoothersFromParams(1, SmootherUpdateMode::initialize);
-  
-    
+  leftSCSF.prepare(samplesPerBlock);
+    rightSCSF.prepare(samplesPerBlock);
 }
 void Audio_proAudioProcessor::updateSmoothersFromParams(int numSamplesToSkip, SmootherUpdateMode init)
 {   
@@ -801,6 +801,9 @@ void Audio_proAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     }
     leftPostRMS.set( buffer.getRMSLevel(0, 0, numSamples) );
     rightPostRMS.set( buffer.getRMSLevel(1, 0, numSamples) );
+//spectru anyalser
+    leftSCSF.update(buffer);
+    rightSCSF.update(buffer);
 
 
 

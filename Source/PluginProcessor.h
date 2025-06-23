@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include <Fifo.h>
-
+#include <SingleChannelSampleFifo.h>
 //==============================================================================
 /**
 */
@@ -144,7 +144,8 @@ public:
     inputGainSmoother,
     outputGainSmoother;
   juce::Atomic<float> leftPreRMS, rightPreRMS, leftPostRMS, rightPostRMS;
-   
+SimpleMBComp::SingleChannelSampleFifo<juce::AudioBuffer<float>> leftSCSF { SimpleMBComp::Channel::Left }, rightSCSF { SimpleMBComp::Channel::Right };
+
    std::vector<juce::RangedAudioParameter*> getparamsforoption(DSP_Option option);
 
 

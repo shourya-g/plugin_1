@@ -5,20 +5,33 @@
   <MAINGROUP id="G0Nxcd" name="audio_pro">
     <GROUP id="{52D6AEF0-FA70-CA98-DB3C-38B7B599E6EF}" name="Source">
       <GROUP id="{7BF76AB6-DCBC-D9AD-6D9F-5707FAA775F0}" name="GUI">
+        <FILE id="cifGfT" name="AnalyzerPathGenerator.h" compile="0" resource="0"
+              file="SimpleMultiBandComp/Source/GUI/AnalyzerPathGenerator.h"/>
         <FILE id="GPPU8m" name="CustomButtons.cpp" compile="1" resource="0"
               file="SimpleMultiBandComp/Source/GUI/CustomButtons.cpp"/>
         <FILE id="vcqyic" name="CustomButtons.h" compile="0" resource="0" file="SimpleMultiBandComp/Source/GUI/CustomButtons.h"/>
+        <FILE id="cyyGwN" name="FFTDataGenerator.h" compile="0" resource="0"
+              file="SimpleMultiBandComp/Source/GUI/FFTDataGenerator.h"/>
         <FILE id="V6qZ1E" name="LookAndFeel.cpp" compile="1" resource="0" file="SimpleMultiBandComp/Source/GUI/LookAndFeel.cpp"/>
         <FILE id="mZEfna" name="LookAndFeel.h" compile="0" resource="0" file="SimpleMultiBandComp/Source/GUI/LookAndFeel.h"/>
+        <FILE id="lwtkla" name="PathProducer.cpp" compile="1" resource="0"
+              file="SimpleMultiBandComp/Source/GUI/PathProducer.cpp"/>
+        <FILE id="TUPyGG" name="PathProducer.h" compile="0" resource="0" file="SimpleMultiBandComp/Source/GUI/PathProducer.h"/>
         <FILE id="mVqdHP" name="RotarySliderWithLabels.cpp" compile="1" resource="0"
               file="SimpleMultiBandComp/Source/GUI/RotarySliderWithLabels.cpp"/>
         <FILE id="nvwqGO" name="RotarySliderWithLabels.h" compile="0" resource="0"
               file="SimpleMultiBandComp/Source/GUI/RotarySliderWithLabels.h"/>
+        <FILE id="rsqKhj" name="SpectrumAnalyzer.cpp" compile="1" resource="0"
+              file="SimpleMultiBandComp/Source/GUI/SpectrumAnalyzer.cpp"/>
+        <FILE id="HPBcvA" name="SpectrumAnalyzer.h" compile="0" resource="0"
+              file="SimpleMultiBandComp/Source/GUI/SpectrumAnalyzer.h"/>
         <FILE id="ssgWas" name="Utilities.cpp" compile="1" resource="0" file="SimpleMultiBandComp/Source/GUI/Utilities.cpp"/>
         <FILE id="YcoVCF" name="Utilities.h" compile="0" resource="0" file="SimpleMultiBandComp/Source/GUI/Utilities.h"/>
       </GROUP>
       <GROUP id="{87FD3404-2207-5B28-4D6D-24B89826F2AA}" name="DSP">
         <FILE id="gnlJqa" name="Fifo.h" compile="0" resource="0" file="SimpleMultiBandComp/Source/DSP/Fifo.h"/>
+        <FILE id="eY2yOI" name="SingleChannelSampleFifo.h" compile="0" resource="0"
+              file="SimpleMultiBandComp/Source/DSP/SingleChannelSampleFifo.h"/>
       </GROUP>
       <FILE id="uxfqYz" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

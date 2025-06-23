@@ -11,7 +11,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include <LookAndFeel.h>
-
+#include <SpectrumAnalyzer.h>
 // Forward declaration
 struct CustomLookAndFeel;
 
@@ -154,7 +154,7 @@ juce::Timer
 {
 public:
     Audio_proAudioProcessorEditor (Audio_proAudioProcessor&);
-    ~Audio_proAudioProcessorEditor() override;
+    ~Audio_proAudioProcessorEditor() noexcept;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -170,6 +170,12 @@ private:
     std::unique_ptr<CustomLookAndFeel> customLookAndFeel;
     DSP_Gui dspGui{audioProcessor};
    ExtendedTabbedButtonBar tabbedComponent{audioProcessor};
+     SimpleMBComp::SpectrumAnalyzer analyzer
+    {
+        audioProcessor,
+        audioProcessor.leftSCSF,
+        audioProcessor.rightSCSF
+    };
    static constexpr int meterWidth = 80;
    
 
