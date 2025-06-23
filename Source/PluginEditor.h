@@ -98,19 +98,20 @@ private:
     Audio_proAudioProcessor::DSP_Option option;
 
 };
+struct RotarySliderWithLabels;
 
 struct DSP_Gui : juce::Component
 {
-    DSP_Gui(Audio_proAudioProcessor& p): processor(p) {}
+    DSP_Gui(Audio_proAudioProcessor& p);
+    
     void resized() override;
     void paint( juce::Graphics& g ) override;
-
     
     void rebuildInterface( std::vector< juce::RangedAudioParameter* > params );
-    // void toggleSliderEnablement(bool enabled);
+    void toggleSliderEnablement(bool enabled);
     
     Audio_proAudioProcessor& processor;
-    std::vector< std::unique_ptr<juce::Slider> > sliders;
+    std::vector< std::unique_ptr<RotarySliderWithLabels> > sliders;
     std::vector< std::unique_ptr<juce::ComboBox> > comboBoxes;
     std::vector< std::unique_ptr<juce::Button> > buttons;
     
@@ -118,7 +119,7 @@ struct DSP_Gui : juce::Component
     std::vector< std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> > comboBoxAttachments;
     std::vector< std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> > buttonAttachments;
     
-    // std::vector< juce::RangedAudioParameter* > currentParams;
+    std::vector< juce::RangedAudioParameter* > currentParams;
 };
 //==
 
