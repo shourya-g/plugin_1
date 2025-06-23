@@ -14,6 +14,18 @@
 //==============================================================================
 /**
 */
+ //metering
+    static constexpr int NEGATIVE_INFINITY = -72;
+    static constexpr int MAX_DECIBELS = 12;
+    enum class GeneralFilterMode
+    {
+        Peak,
+        Bandpass,
+        Notch,
+        Allpass,
+        END_OF_LIST
+    };
+  
 
 class Audio_proAudioProcessor  : public juce::AudioProcessor
                             #if JucePlugin_Enable_ARA
@@ -131,16 +143,8 @@ public:
     generalFilterGainSmoother,
     inputGainSmoother,
     outputGainSmoother;
-
-    enum class GeneralFilterMode
-    {
-        Peak,
-        Bandpass,
-        Notch,
-        Allpass,
-        END_OF_LIST
-    };
-  
+  juce::Atomic<float> leftPreRMS, rightPreRMS, leftPostRMS, rightPostRMS;
+   
    std::vector<juce::RangedAudioParameter*> getparamsforoption(DSP_Option option);
 
 
