@@ -100,6 +100,19 @@ private:
 };
 struct RotarySliderWithLabels;
 
+struct LevelMeter : juce::Component
+{
+    LevelMeter(std::function<float()> levelGetter);
+    void paint(juce::Graphics& g) override;
+    void setLevel(float newLevel);
+    
+private:
+    std::function<float()> getLevelFunc;
+    juce::Atomic<float> level{-60.0f};
+    static constexpr float NEGATIVE_INFINITY = -60.0f;
+    static constexpr float MAX_DECIBELS = 6.0f;
+};
+
 struct DSP_Gui : juce::Component
 {
     DSP_Gui(Audio_proAudioProcessor& p);
@@ -109,6 +122,7 @@ struct DSP_Gui : juce::Component
     
     void rebuildInterface( std::vector< juce::RangedAudioParameter* > params );
     void toggleSliderEnablement(bool enabled);
+    void updateMeters();
     
     Audio_proAudioProcessor& processor;
     std::vector< std::unique_ptr<RotarySliderWithLabels> > sliders;
@@ -120,6 +134,10 @@ struct DSP_Gui : juce::Component
     std::vector< std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> > buttonAttachments;
     
     std::vector< juce::RangedAudioParameter* > currentParams;
+    
+    // Level meters
+    LevelMeter leftInputMeter, rightInputMeter;
+    LevelMeter leftOutputMeter, rightOutputMeter;
 };
 //==
 
@@ -145,6 +163,8 @@ private:
     ::LookAndFeel lookAndFeel;
     DSP_Gui dspGui{audioProcessor};
    ExtendedTabbedButtonBar tabbedComponent;
+   static constexpr int meterWidth = 80;
+   
 
    void addTabsFromDSPOrder(Audio_proAudioProcessor::DSP_Order);
     void rebuildInterface();

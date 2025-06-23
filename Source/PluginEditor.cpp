@@ -126,6 +126,82 @@ int ExtendedTabBarButton::getBestTabLength(int depth)
 
 ////////
 
+LevelMeter::LevelMeter(std::function<float()> levelGetter) : getLevelFunc(std::move(levelGetter))
+{
+}
+
+void LevelMeter::paint(juce::Graphics& g)
+{
+    auto bounds = getLocalBounds().toFloat();
+    
+    // Background
+    g.setColour(juce::Colours::black);
+    g.fillRect(bounds);
+    
+    // Border
+    g.setColour(juce::Colours::grey);
+    g.drawRect(bounds, 1.0f);
+    
+    // Get current level
+    auto currentLevel = getLevelFunc ? getLevelFunc() : level.get();
+    
+    // Convert to dB if needed
+    auto levelDb = currentLevel > 0.0f ? juce::Decibels::gainToDecibels(currentLevel) : NEGATIVE_INFINITY;
+    
+    // Clamp to our range
+    levelDb = juce::jlimit(NEGATIVE_INFINITY, MAX_DECIBELS, levelDb);
+    
+    // Calculate meter fill height
+    auto normalizedLevel = juce::jmap(levelDb, NEGATIVE_INFINITY, MAX_DECIBELS, 0.0f, 1.0f);
+    auto meterHeight = bounds.getHeight() * normalizedLevel;
+    
+    // Draw the meter
+    if (meterHeight > 0)
+    {
+        auto meterRect = bounds.withHeight(meterHeight).withBottomY(bounds.getBottom());
+        
+        // Color based on level
+        if (levelDb > 0.0f)
+        {
+            g.setColour(juce::Colours::red);  // Over 0dB = red
+        }
+        else if (levelDb > -6.0f)
+        {
+            g.setColour(juce::Colours::yellow);  // -6dB to 0dB = yellow
+        }
+        else
+        {
+            g.setColour(juce::Colours::green);   // Below -6dB = green
+        }
+        
+        g.fillRect(meterRect);
+    }
+    
+    // Draw scale marks
+    g.setColour(juce::Colours::lightgrey);
+    g.setFont(8.0f);
+    
+    auto drawScaleMark = [&](float dbLevel, const juce::String& text)
+    {
+        auto y = juce::jmap(dbLevel, NEGATIVE_INFINITY, MAX_DECIBELS, bounds.getBottom(), bounds.getY());
+        g.drawLine(bounds.getX(), y, bounds.getX() + 5, y);
+        g.drawText(text, bounds.getX() + 6, y - 4, 20, 8, juce::Justification::left);
+    };
+    
+    drawScaleMark(0.0f, "0");
+    drawScaleMark(-6.0f, "-6");
+    drawScaleMark(-12.0f, "-12");
+    drawScaleMark(-18.0f, "-18");
+}
+
+void LevelMeter::setLevel(float newLevel)
+{
+    level.set(newLevel);
+    repaint();
+}
+
+////////
+
 ExtendedTabbedButtonBar::ExtendedTabbedButtonBar() : juce::TabbedButtonBar(juce::TabbedButtonBar::Orientation::TabsAtTop) 
 {
   
@@ -304,17 +380,40 @@ void ExtendedTabbedButtonBar::removeListener(Listener* l)
     listeners.remove(l); 
 }
 
-DSP_Gui::DSP_Gui(Audio_proAudioProcessor& proc) : processor(proc)
+DSP_Gui::DSP_Gui(Audio_proAudioProcessor& proc) : processor(proc),
+    leftInputMeter([&proc]() { return proc.leftPreRMS.get(); }),
+    rightInputMeter([&proc]() { return proc.rightPreRMS.get(); }),
+    leftOutputMeter([&proc]() { return proc.leftPostRMS.get(); }),
+    rightOutputMeter([&proc]() { return proc.rightPostRMS.get(); })
 {
-    
+    addAndMakeVisible(leftInputMeter);
+    addAndMakeVisible(rightInputMeter);
+    addAndMakeVisible(leftOutputMeter);
+    addAndMakeVisible(rightOutputMeter);
 }
 void DSP_Gui::resized()
 {
+    auto bounds = getLocalBounds();
+    
+    // Reserve space for meters at the left and right
+    static constexpr int meterWidth = 30;
+    auto leftMeterArea = bounds.removeFromLeft(meterWidth);
+    auto rightMeterArea = bounds.removeFromRight(meterWidth);
+    
+    // Split meter areas vertically for input/output meters
+    auto leftInputArea = leftMeterArea.removeFromTop(leftMeterArea.getHeight() / 2);
+    auto leftOutputArea = leftMeterArea;
+    auto rightInputArea = rightMeterArea.removeFromTop(rightMeterArea.getHeight() / 2);
+    auto rightOutputArea = rightMeterArea;
+    
+    leftInputMeter.setBounds(leftInputArea);
+    leftOutputMeter.setBounds(leftOutputArea);
+    rightInputMeter.setBounds(rightInputArea);
+    rightOutputMeter.setBounds(rightOutputArea);
 
    // to fit the DSP_Gui component's bounds. It lays out buttons at the top, comboBoxes on the left,
    // and sliders in the remaining area. The logic checks if each vector is empty before laying out
    // the corresponding controls, and divides the available space evenly among the controls of each type.
-   auto bounds = getLocalBounds();
     if( buttons.empty() == false )
     {
         auto buttonArea = bounds.removeFromTop(30);
@@ -347,6 +446,56 @@ void DSP_Gui::resized()
 void DSP_Gui::paint( juce::Graphics& g )
 {
     g.fillAll(juce::Colours::black);
+    auto fillMeter = [&](auto rect, const auto& rmsSource)
+    {
+        g.setColour(juce::Colours::black);
+        g.fillRect(rect);
+        
+        auto rms = rmsSource.get();
+        if( rms > 1.f )
+        {
+            g.setColour(juce::Colours::red);
+            auto lowerLeft = juce::Point<float>(rect.getX(),
+                                                juce::jmap<float>(juce::Decibels::gainToDecibels(1.f),
+                                                                  NEGATIVE_INFINITY,
+                                                                  MAX_DECIBELS,
+                                                                  rect.getBottom(),
+                                                                  rect.getY()));
+            auto upperRight = juce::Point<float>(rect.getRight(),
+                                                 juce::jmap<float>(juce::Decibels::gainToDecibels(rms),
+                                                                   NEGATIVE_INFINITY,
+                                                                   MAX_DECIBELS,
+                                                                   rect.getBottom(),
+                                                                   rect.getY()));
+            
+            auto overThreshRect = juce::Rectangle<float>(lowerLeft, upperRight);
+            g.fillRect(overThreshRect);
+        }
+        
+        rms = juce::jmin<float>(rms, 1.f);
+//        DBG( "rms: " << rms );
+        g.setColour(juce::Colours::green);
+        g.fillRect(rect
+                   .withY(juce::jmap<float>(juce::Decibels::gainToDecibels(rms),
+                                            NEGATIVE_INFINITY,
+                                            MAX_DECIBELS,
+                                            rect.getBottom(),
+                                            rect.getY()))
+                   .withBottom(rect.getBottom()));
+    };
+
+    auto bounds = getLocalBounds();;
+    auto premterarea= bounds.removeFromBottom(80);
+    fillMeter(premterarea, processor.leftPreRMS);
+   
+}
+
+void DSP_Gui::updateMeters()
+{
+    leftInputMeter.repaint();
+    rightInputMeter.repaint();
+    leftOutputMeter.repaint();
+    rightOutputMeter.repaint();
 }
 void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > params )
 {
@@ -414,7 +563,7 @@ Audio_proAudioProcessorEditor::Audio_proAudioProcessorEditor (Audio_proAudioProc
     addAndMakeVisible(dspGui);
     tabbedComponent.addListener(this);
     startTimerHz(30);
-    setSize (600, 400);
+    setSize (770, 400);
 }
 
 Audio_proAudioProcessorEditor::~Audio_proAudioProcessorEditor()
@@ -440,9 +589,11 @@ void Audio_proAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
     auto bounds = getLocalBounds();
-
+    auto leftmeterarea= bounds.removeFromLeft(meterWidth);
+    auto rightmeterarea= bounds.removeFromRight(meterWidth);
+    juce::ignoreUnused(leftmeterarea, rightmeterarea);
     // dspOrderButton.setBounds(bounds.removeFromTop(30).withSizeKeepingCentre(150,30));
-    bounds.removeFromTop(10);
+   
     tabbedComponent.setBounds(bounds.removeFromTop(30));
     dspGui.setBounds(bounds);
 }
@@ -498,6 +649,9 @@ void Audio_proAudioProcessorEditor::rebuildInterface()
 }
 void Audio_proAudioProcessorEditor::timerCallback()
 {
+    // Update meters
+    dspGui.updateMeters();
+    
     if(audioProcessor.restoredDspOrderFifo.getNumAvailableForReading() ==0)
     return;
 
@@ -519,5 +673,5 @@ void Audio_proAudioProcessorEditor::timerCallback()
     
 
     
-
+   repaint();
 }
