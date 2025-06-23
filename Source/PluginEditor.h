@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-
+#include <LookAndFeel.h>
 //==============================================================================
 /**
 */
@@ -142,6 +142,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     Audio_proAudioProcessor& audioProcessor;
+    ::LookAndFeel lookAndFeel;
     DSP_Gui dspGui{audioProcessor};
    ExtendedTabbedButtonBar tabbedComponent;
 

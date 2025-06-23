@@ -420,10 +420,12 @@ void Audio_proAudioProcessor::MonoChannelDSP::prepare(const juce::dsp::ProcessSp
     
     for( auto p : dsp )
     {
+
         p->prepare(spec);
         p->reset();
     }
-    
+    //as deafult cutoff for overdrive is very low 
+    //not mistake 
     overdrive.dsp.setCutoffFrequencyHz(20000.f);
 }
 
