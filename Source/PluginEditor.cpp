@@ -9,7 +9,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include "RotarySliderWithLabels.h"
-
+#include <Utilities.h>
 //==============================================================================
 
 static juce::String getNameFromDSPOption(Audio_proAudioProcessor::DSP_Option option)
@@ -386,7 +386,7 @@ void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > param
                    //sliders are used for float and choice params
             sliders.push_back(std::make_unique<RotarySliderWithLabels>(p, p->label, p->getName(100)));
             auto& slider = *sliders.back();
-            // SimpleMBComp::addLabelPairs(slider.labels, *p, p->label);
+            SimpleMBComp::addLabelPairs(slider.labels, *p, p->label);
             slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
             sliderAttachments.push_back(std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.apvts, p->getName(100), slider));
         }
