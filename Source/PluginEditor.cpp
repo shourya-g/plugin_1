@@ -124,6 +124,8 @@ int ExtendedTabBarButton::getBestTabLength(int depth)
                       bar.getWidth() / bar.getNumTabs());
 }
 
+
+
 ////////
 
 LevelMeter::LevelMeter(std::function<float()> levelGetter) : getLevelFunc(std::move(levelGetter))
@@ -202,7 +204,7 @@ void LevelMeter::setLevel(float newLevel)
 
 ////////
 
-ExtendedTabbedButtonBar::ExtendedTabbedButtonBar() : juce::TabbedButtonBar(juce::TabbedButtonBar::Orientation::TabsAtTop) 
+ExtendedTabbedButtonBar::ExtendedTabbedButtonBar(Audio_proAudioProcessor& proc) : juce::TabbedButtonBar(juce::TabbedButtonBar::Orientation::TabsAtTop), processor(proc) 
 {
   
 }
@@ -338,7 +340,14 @@ juce::TabBarButton* ExtendedTabbedButtonBar::createTabButton(const juce::String&
     auto etbb = std::make_unique<ExtendedTabBarButton>(tabName, *this, dspOption);
     etbb->addMouseListener(this, false);
     
-    return etbb.release();
+    auto* button = etbb.release();
+    
+    // We'll add the bypass button in a timer callback since the tab needs to be added first
+    juce::Timer::callAfterDelay(1, [this, tabIndex, dspOption]() {
+        addBypassButtonToTab(tabIndex, dspOption);
+    });
+    
+    return button;
 }
  
  
@@ -378,6 +387,55 @@ void ExtendedTabbedButtonBar::addListener(Listener* l)
 void ExtendedTabbedButtonBar::removeListener(Listener* l) 
 { 
     listeners.remove(l); 
+}
+
+void ExtendedTabbedButtonBar::addBypassButtonToTab(int tabIndex, Audio_proAudioProcessor::DSP_Option option)
+{
+    auto* tabButton = getTabButton(tabIndex);
+    if (!tabButton) return;
+    
+    // Create bypass button
+    auto bypassButton = std::make_unique<juce::ToggleButton>();
+    bypassButton->setButtonText("X");
+    bypassButton->setTooltip("Bypass " + getNameFromDSPOption(option));
+    bypassButton->setSize(16, 16);
+    
+    // Get the bypass parameter for this DSP option
+    juce::AudioParameterBool* bypassParam = nullptr;
+    switch (option)
+    {
+        case Audio_proAudioProcessor::DSP_Option::Phase:
+            bypassParam = processor.phaserBypass;
+            break;
+        case Audio_proAudioProcessor::DSP_Option::Chorus:
+            bypassParam = processor.chorusBypass;
+            break;
+        case Audio_proAudioProcessor::DSP_Option::Overdrive:
+            bypassParam = processor.overdriveBypass;
+            break;
+        case Audio_proAudioProcessor::DSP_Option::LadderFilter:
+            bypassParam = processor.ladderFilterBypass;
+            break;
+        case Audio_proAudioProcessor::DSP_Option::GeneralFilter:
+            bypassParam = processor.generalFilterBypass;
+            break;
+        case Audio_proAudioProcessor::DSP_Option::END_OF_LIST:
+        default:
+            return; // No bypass parameter for this option
+    }
+    
+    if (bypassParam)
+    {
+        // Create attachment to connect button to parameter
+        auto attachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
+            processor.apvts, bypassParam->getName(100), *bypassButton);
+        
+        // Store the attachment so it doesn't get destroyed
+        bypassAttachments.push_back(std::move(attachment));
+        
+        // Set the bypass button as extra component on the tab
+        tabButton->setExtraComponent(bypassButton.release(), juce::TabBarButton::afterText);
+    }
 }
 
 DSP_Gui::DSP_Gui(Audio_proAudioProcessor& proc) : processor(proc),

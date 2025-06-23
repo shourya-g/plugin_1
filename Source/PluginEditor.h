@@ -20,7 +20,7 @@
  */
 struct ExtendedTabbedButtonBar : juce::TabbedButtonBar, juce::DragAndDropTarget, juce::DragAndDropContainer
 {
-  ExtendedTabbedButtonBar();
+  ExtendedTabbedButtonBar(Audio_proAudioProcessor& proc);
 
   bool isInterestedInDragSource(const SourceDetails& dragSourceDetails) override;
 
@@ -53,10 +53,15 @@ void itemDragExit (const SourceDetails& dragSourceDetails) override;
   int findDraggedItemIndex(const SourceDetails& dragSourceDetails);
   juce::Array<juce::TabBarButton*> getTabs();
   
+  // Helper to add bypass buttons to tabs
+  void addBypassButtonToTab(int tabIndex, Audio_proAudioProcessor::DSP_Option option);
+  
 
 private:
     juce::Point<int> previousDraggedTabCenterPosition; 
-     juce::ListenerList<Listener> listeners;
+    juce::ListenerList<Listener> listeners;
+    Audio_proAudioProcessor& processor;
+    std::vector<std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment>> bypassAttachments;
 };
 //need some kind of horozontal constrrainer (todo)done
 
@@ -87,14 +92,12 @@ struct ExtendedTabBarButton: juce::TabBarButton
    
     
     void mouseDown (const juce::MouseEvent& e) override;
-
     void mouseDrag (const juce::MouseEvent& e) override;
 
     Audio_proAudioProcessor::DSP_Option getOption() const { return option; }
-     int getBestTabLength (int depth) override;
+    int getBestTabLength (int depth) override;
 
 private:
-//constrcutor also needed the dsp option to be passed in
     Audio_proAudioProcessor::DSP_Option option;
 
 };
@@ -162,7 +165,7 @@ private:
     Audio_proAudioProcessor& audioProcessor;
     ::LookAndFeel lookAndFeel;
     DSP_Gui dspGui{audioProcessor};
-   ExtendedTabbedButtonBar tabbedComponent;
+   ExtendedTabbedButtonBar tabbedComponent{audioProcessor};
    static constexpr int meterWidth = 80;
    
 
