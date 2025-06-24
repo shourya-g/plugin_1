@@ -12,28 +12,80 @@
 #include <Utilities.h>
 //==============================================================================
 
-// Custom color scheme for this plugin
+// Modern color scheme for this plugin
 namespace PluginColors
 {
-inline juce::Colour getGainReductionColor() { return juce::Colour(0xff38c19b); }
-inline juce::Colour getInputSignalColor() { return juce::Colour(0xff00e7ff); }
-inline juce::Colour getOutputSignalColor() { return juce::Colour(0xff0cff00); }
-inline juce::Colour getSliderFillColor() { return juce::Colour(0xff96bbc2); }
-inline juce::Colour getOrangeBorderColor() { return juce::Colour(255u, 154u, 1u); }
-inline juce::Colour getSliderRangeTextColor() { return juce::Colour(0u, 172u, 1u); }
-inline juce::Colour getSliderBorderColor() { return juce::Colour(0xff0087a2); }
-inline juce::Colour getThresholdColor() { return juce::Colour(0xffe0760c); }
-inline juce::Colour getModuleBorderColor() { return juce::Colour(0xff475d9d); }
-inline juce::Colour getTitleColor() { return juce::Colour(0xff2c92ca); }
-inline juce::Colour getAnalyzerGridColor() { return juce::Colour(0xff262626); }
-inline juce::Colour getTickColor() { return juce::Colour(0xff313131); }
-inline juce::Colour getMeterLineColor() { return juce::Colour(0xff3c3c3c); }
-inline juce::Colour getScaleTextColor() { return juce::Colours::lightgrey; }
+// Primary brand colors - deeper, more professional
+inline juce::Colour getPrimaryBlue() { return juce::Colour(0xff2196f3); }
+inline juce::Colour getPrimaryBlueLight() { return juce::Colour(0xff64b5f6); }
+inline juce::Colour getPrimaryBlueDark() { return juce::Colour(0xff1976d2); }
+inline juce::Colour getAccentCyan() { return juce::Colour(0xff00bcd4); }
+inline juce::Colour getAccentOrange() { return juce::Colour(0xffff5722); }
+
+// Background colors - more sophisticated gradients
+inline juce::Colour getWindowBackground() { return juce::Colour(0xff1a1a1a); }
+inline juce::Colour getModuleBackground() { return juce::Colour(0xff2d2d2d); }
+inline juce::Colour getModuleBackgroundLight() { return juce::Colour(0xff3a3a3a); }
+inline juce::Colour getCardBackground() { return juce::Colour(0xff424242); }
+
+// Control colors
+inline juce::Colour getSliderTrack() { return juce::Colour(0xff4a4a4a); }
+inline juce::Colour getSliderThumb() { return getPrimaryBlue(); }
+inline juce::Colour getSliderThumbHover() { return getPrimaryBlueLight(); }
+inline juce::Colour getSliderValue() { return getAccentCyan(); }
+
+// Meter colors with more distinct levels
+inline juce::Colour getMeterGreen() { return juce::Colour(0xff4caf50); }
+inline juce::Colour getMeterYellow() { return juce::Colour(0xffff9800); }
+inline juce::Colour getMeterOrange() { return juce::Colour(0xffff5722); }
+inline juce::Colour getMeterRed() { return juce::Colour(0xfff44336); }
+
+// Text colors
+inline juce::Colour getTextPrimary() { return juce::Colour(0xffffffff); }
+inline juce::Colour getTextSecondary() { return juce::Colour(0xffb0b0b0); }
+inline juce::Colour getTextDisabled() { return juce::Colour(0xff757575); }
+
+// Border and outline colors
+inline juce::Colour getBorderLight() { return juce::Colour(0xff616161); }
+inline juce::Colour getBorderDark() { return juce::Colour(0xff2a2a2a); }
+inline juce::Colour getFocusRing() { return getPrimaryBlueLight().withAlpha(0.6f); }
+
+// Legacy color getters for compatibility
+inline juce::Colour getGainReductionColor() { return getMeterYellow(); }
+inline juce::Colour getInputSignalColor() { return getAccentCyan(); }
+inline juce::Colour getOutputSignalColor() { return getMeterGreen(); }
+inline juce::Colour getSliderFillColor() { return getSliderThumb(); }
+inline juce::Colour getOrangeBorderColor() { return getAccentOrange(); }
+inline juce::Colour getSliderRangeTextColor() { return getSliderValue(); }
+inline juce::Colour getSliderBorderColor() { return getBorderLight(); }
+inline juce::Colour getThresholdColor() { return getMeterOrange(); }
+inline juce::Colour getModuleBorderColor() { return getBorderDark(); }
+inline juce::Colour getTitleColor() { return getPrimaryBlue(); }
+inline juce::Colour getAnalyzerGridColor() { return getModuleBackground(); }
+inline juce::Colour getTickColor() { return getBorderLight(); }
+inline juce::Colour getMeterLineColor() { return getBorderLight(); }
+inline juce::Colour getScaleTextColor() { return getTextSecondary(); }
 }
 
-// Custom LookAndFeel class
+// Enhanced CustomLookAndFeel class with modern styling
 struct CustomLookAndFeel : juce::LookAndFeel_V4
 {
+    CustomLookAndFeel()
+    {
+        // Set up modern color scheme
+        setColour(juce::ResizableWindow::backgroundColourId, PluginColors::getWindowBackground());
+        setColour(juce::Slider::trackColourId, PluginColors::getSliderTrack());
+        setColour(juce::Slider::thumbColourId, PluginColors::getSliderThumb());
+        setColour(juce::Slider::rotarySliderFillColourId, PluginColors::getSliderThumb());
+        setColour(juce::Slider::rotarySliderOutlineColourId, PluginColors::getSliderTrack());
+        setColour(juce::ComboBox::backgroundColourId, PluginColors::getCardBackground());
+        setColour(juce::ComboBox::outlineColourId, PluginColors::getBorderLight());
+        setColour(juce::TextButton::buttonColourId, PluginColors::getCardBackground());
+        setColour(juce::TextButton::buttonOnColourId, PluginColors::getPrimaryBlue());
+        setColour(juce::TextButton::textColourOffId, PluginColors::getTextPrimary());
+        setColour(juce::TextButton::textColourOnId, juce::Colours::white);
+    }
+    
     void drawRotarySlider (juce::Graphics& g,
                            int x, int y, int width, int height,
                            float sliderPosProportional,
@@ -43,91 +95,213 @@ struct CustomLookAndFeel : juce::LookAndFeel_V4
     {
         using namespace juce;
         
-        auto bounds = Rectangle<int>(x, y, width, height).toFloat();
+        auto bounds = Rectangle<int>(x, y, width, height).toFloat().reduced(4);
         auto enabled = slider.isEnabled();
+        auto isHover = slider.isMouseOverOrDragging();
         
-        g.setColour(enabled ? PluginColors::getSliderFillColor() : Colours::darkgrey);
+        // Simplified - removed shadow for performance
+        
+        // Main knob background with gradient
+        juce::ColourGradient knobGradient(
+            enabled ? PluginColors::getCardBackground().brighter(0.1f) : PluginColors::getCardBackground().darker(0.2f),
+            bounds.getCentreX(), bounds.getY(),
+            enabled ? PluginColors::getCardBackground().darker(0.1f) : PluginColors::getCardBackground().darker(0.4f),
+            bounds.getCentreX(), bounds.getBottom(),
+            false
+        );
+        g.setGradientFill(knobGradient);
         g.fillEllipse(bounds);
         
-        g.setColour(enabled ? PluginColors::getSliderBorderColor() : Colours::grey);
-        g.drawEllipse(bounds, 2.f);
+        // Inner highlight ring
+        auto innerBounds = bounds.reduced(2);
+        g.setColour(enabled ? PluginColors::getBorderLight().withAlpha(0.3f) : PluginColors::getBorderDark());
+        g.drawEllipse(innerBounds, 1.0f);
         
-        if (auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
+        // Outer border
+        g.setColour(enabled ? (isHover ? PluginColors::getFocusRing() : PluginColors::getBorderLight()) 
+                            : PluginColors::getTextDisabled());
+        g.drawEllipse(bounds, enabled ? 2.0f : 1.0f);
+        
+        // Value arc
+        if (enabled)
         {
             auto center = bounds.getCentre();
-            Path p;
+            auto radius = bounds.getWidth() * 0.4f;
+            auto lineThickness = 3.0f;
             
-            Rectangle<float> r;
-            r.setLeft(center.getX() - 2);
-            r.setRight(center.getX() + 2);
-            r.setTop(bounds.getY());
-            r.setBottom(jmax(center.getY() - rswl->getTextHeight() * 1.5f,
-                            bounds.getY() + 15));
+            Path valueArc;
+            valueArc.addCentredArc(center.x, center.y, radius, radius, 0.0f,
+                                 rotaryStartAngle, rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle),
+                                 true);
             
-            p.addRoundedRectangle(r, 2.f);
+            // Value arc with gradient
+            auto valueColor = isHover ? PluginColors::getSliderThumbHover() : PluginColors::getSliderThumb();
+            g.setColour(valueColor);
+            g.strokePath(valueArc, PathStrokeType(lineThickness, PathStrokeType::curved, PathStrokeType::rounded));
             
-            jassert(rotaryStartAngle < rotaryEndAngle);
+            // Track arc (remaining portion)
+            Path trackArc;
+            trackArc.addCentredArc(center.x, center.y, radius, radius, 0.0f,
+                                 rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle),
+                                 rotaryEndAngle,
+                                 true);
             
-            auto sliderAngRad = jmap(sliderPosProportional, 0.f, 1.f, rotaryStartAngle, rotaryEndAngle);
+            g.setColour(PluginColors::getSliderTrack());
+            g.strokePath(trackArc, PathStrokeType(lineThickness * 0.7f, PathStrokeType::curved, PathStrokeType::rounded));
+        }
+        
+        // Simple center dot indicator
+        if (enabled)
+        {
+            auto center = bounds.getCentre();
+            auto dotRadius = 3.0f;
+            auto indicatorRadius = bounds.getWidth() * 0.3f;
             
-            p.applyTransform(AffineTransform().rotated(sliderAngRad, center.getX(), center.getY()));
+            auto angle = rotaryStartAngle + sliderPosProportional * (rotaryEndAngle - rotaryStartAngle);
+            auto dotX = center.x + std::cos(angle - juce::MathConstants<float>::halfPi) * indicatorRadius;
+            auto dotY = center.y + std::sin(angle - juce::MathConstants<float>::halfPi) * indicatorRadius;
             
-            g.fillPath(p);
-            
-            g.setFont(static_cast<float>(rswl->getTextHeight()));
+            // Simple dot without shadow
+            g.setColour(isHover ? PluginColors::getSliderThumbHover() : PluginColors::getSliderThumb());
+            g.fillEllipse(dotX - dotRadius, dotY - dotRadius, dotRadius * 2, dotRadius * 2);
+        }
+        
+        // Draw label text with better styling
+        if (auto* rswl = dynamic_cast<RotarySliderWithLabels*>(&slider))
+        {
+            g.setFont(juce::Font(juce::FontOptions(static_cast<float>(rswl->getTextHeight()))).boldened());
             auto text = rswl->getDisplayString();
-            auto strWidth = g.getCurrentFont().getStringWidth(text);
+            auto textBounds = bounds.withY(bounds.getBottom() + 5).withHeight(static_cast<float>(rswl->getTextHeight() + 4));
             
-            r.setSize(static_cast<float>(strWidth + 4), 
-                      static_cast<float>(rswl->getTextHeight() + 2));
-            r.setCentre(bounds.getCentre());
-            
-            g.setColour(enabled ? PluginColors::getTitleColor() : Colours::lightgrey);
-            g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
+            // Simple text without shadow
+            g.setColour(enabled ? PluginColors::getTextPrimary() : PluginColors::getTextDisabled());
+            g.drawFittedText(text, textBounds.toNearestInt(), juce::Justification::centred, 1);
         }
     }
     
     void drawToggleButton (juce::Graphics &g,
                            juce::ToggleButton & toggleButton,
-                           bool /*shouldDrawButtonAsHighlighted*/,
+                           bool shouldDrawButtonAsHighlighted,
                            bool /*shouldDrawButtonAsDown*/) override
     {
         auto bounds = toggleButton.getLocalBounds().reduced(2);
         auto buttonIsOn = toggleButton.getToggleState();
-        const int cornerSize = 4;
-
-        g.setColour(buttonIsOn ?
-                    PluginColors::getSliderRangeTextColor() :
-                    PluginColors::getModuleBorderColor());
+        auto isHover = shouldDrawButtonAsHighlighted || toggleButton.isMouseOverOrDragging();
+        const float cornerSize = 6.0f;
+        
+        // Button shadow
+        if (buttonIsOn || isHover)
+        {
+            auto shadowBounds = bounds.expanded(1).toFloat();
+            g.setColour(juce::Colours::black.withAlpha(0.3f));
+            g.fillRoundedRectangle(shadowBounds, cornerSize);
+        }
+        
+        // Button background with gradient
+        auto bgColor = buttonIsOn ? PluginColors::getPrimaryBlue() : PluginColors::getCardBackground();
+        if (isHover)
+            bgColor = bgColor.brighter(0.1f);
+            
+        juce::ColourGradient buttonGradient(
+            bgColor.brighter(0.05f), bounds.getX(), bounds.getY(),
+            bgColor.darker(0.05f), bounds.getX(), bounds.getBottom(),
+            false
+        );
+        g.setGradientFill(buttonGradient);
         g.fillRoundedRectangle(bounds.toFloat(), cornerSize);
         
-        g.setColour(buttonIsOn ? juce::Colours::white : PluginColors::getTitleColor());
-        g.drawRoundedRectangle(bounds.toFloat(), cornerSize, 1);
-        g.setColour(buttonIsOn ? juce::Colours::white : PluginColors::getTitleColor());
+        // Button border
+        auto borderColor = buttonIsOn ? PluginColors::getPrimaryBlueDark() : PluginColors::getBorderLight();
+        if (isHover)
+            borderColor = PluginColors::getFocusRing();
+            
+        g.setColour(borderColor);
+        g.drawRoundedRectangle(bounds.toFloat(), cornerSize, isHover ? 2.0f : 1.0f);
+        
+        // Button text with better contrast
+        g.setFont(juce::Font(juce::FontOptions(bounds.getHeight() * 0.5f)).boldened());
+        auto textColor = buttonIsOn ? juce::Colours::white : PluginColors::getTextPrimary();
+        
+        // Text shadow for better readability
+        g.setColour(juce::Colours::black.withAlpha(0.5f));
+        g.drawFittedText(toggleButton.getButtonText(), bounds.translated(1, 1), juce::Justification::centred, 1);
+        
+        g.setColour(textColor);
         g.drawFittedText(toggleButton.getButtonText(), bounds, juce::Justification::centred, 1);
+    }
+    
+    void drawComboBox (juce::Graphics& g, int width, int height, bool /*isButtonDown*/,
+                      int buttonX, int buttonY, int buttonW, int buttonH, juce::ComboBox& box) override
+    {
+        auto bounds = juce::Rectangle<int>(0, 0, width, height).toFloat();
+        auto isHover = box.isMouseOverOrDragging();
+        const float cornerSize = 4.0f;
+        
+        // Background gradient
+        juce::ColourGradient bgGradient(
+            PluginColors::getCardBackground().brighter(0.05f), 0, 0,
+            PluginColors::getCardBackground().darker(0.05f), 0, height,
+            false
+        );
+        g.setGradientFill(bgGradient);
+        g.fillRoundedRectangle(bounds, cornerSize);
+        
+        // Border
+        g.setColour(isHover ? PluginColors::getFocusRing() : PluginColors::getBorderLight());
+        g.drawRoundedRectangle(bounds, cornerSize, isHover ? 2.0f : 1.0f);
+        
+        // Arrow button area
+        auto buttonBounds = juce::Rectangle<int>(buttonX, buttonY, buttonW, buttonH).toFloat();
+        
+        // Draw arrow
+        auto arrowSize = juce::jmin(buttonBounds.getWidth(), buttonBounds.getHeight()) * 0.3f;
+        auto arrowBounds = buttonBounds.withSizeKeepingCentre(arrowSize, arrowSize * 0.6f);
+        
+        juce::Path arrow;
+        arrow.startNewSubPath(arrowBounds.getX(), arrowBounds.getY());
+        arrow.lineTo(arrowBounds.getCentreX(), arrowBounds.getBottom());
+        arrow.lineTo(arrowBounds.getRight(), arrowBounds.getY());
+        
+        g.setColour(PluginColors::getTextSecondary());
+        g.strokePath(arrow, juce::PathStrokeType(2.0f, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
     }
 };
 
-// Helper functions for drawing module backgrounds
+// Enhanced helper functions for drawing modern module backgrounds
 juce::Rectangle<int> getModuleBackgroundArea(juce::Rectangle<int> bounds)
 {
-    bounds.reduce(3, 3);
+    bounds.reduce(6, 6);
     return bounds;
 }
 
 void drawModuleBackground(juce::Graphics &g, juce::Rectangle<int> bounds)
 {
     using namespace juce;
-    g.setColour(PluginColors::getModuleBorderColor());
-    g.fillAll();
+    auto fbounds = bounds.toFloat();
+    const float cornerRadius = 8.0f;
     
-    auto localBounds = bounds;
+    // Outer shadow for depth
+    auto shadowBounds = fbounds.expanded(2);
+    g.setColour(juce::Colours::black.withAlpha(0.3f));
+    g.fillRoundedRectangle(shadowBounds, cornerRadius + 2);
     
-    bounds.reduce(3, 3);
-    g.setColour(Colours::black);
-    g.fillRoundedRectangle(bounds.toFloat(), 3);
+    // Main background with gradient
+    juce::ColourGradient bgGradient(
+        PluginColors::getModuleBackgroundLight(), fbounds.getCentreX(), fbounds.getY(),
+        PluginColors::getModuleBackground(), fbounds.getCentreX(), fbounds.getBottom(),
+        false
+    );
+    g.setGradientFill(bgGradient);
+    g.fillRoundedRectangle(fbounds, cornerRadius);
     
-    g.drawRect(localBounds);
+    // Inner highlight
+    auto innerBounds = fbounds.reduced(1);
+    g.setColour(PluginColors::getBorderLight().withAlpha(0.1f));
+    g.drawRoundedRectangle(innerBounds, cornerRadius - 1, 1.0f);
+    
+    // Outer border
+    g.setColour(PluginColors::getBorderDark());
+    g.drawRoundedRectangle(fbounds, cornerRadius, 1.5f);
 }
 
 static juce::String getNameFromDSPOption(Audio_proAudioProcessor::DSP_Option option)
@@ -253,65 +427,117 @@ LevelMeter::LevelMeter(std::function<float()> levelGetter) : getLevelFunc(std::m
 void LevelMeter::paint(juce::Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
+    const float cornerRadius = 4.0f;
     
-    // Background with rounded corners
-    g.setColour(juce::Colours::black);
-    g.fillRoundedRectangle(bounds, 2.0f);
+    // Background shadow for depth
+    auto shadowBounds = bounds.expanded(1);
+    g.setColour(juce::Colours::black.withAlpha(0.3f));
+    g.fillRoundedRectangle(shadowBounds, cornerRadius + 1);
     
-    // Border with color scheme
-    g.setColour(PluginColors::getMeterLineColor());
-    g.drawRoundedRectangle(bounds, 2.0f, 1.0f);
+    // Background with modern gradient
+    juce::ColourGradient bgGradient(
+        PluginColors::getModuleBackground().brighter(0.1f), bounds.getCentreX(), bounds.getY(),
+        juce::Colours::black, bounds.getCentreX(), bounds.getBottom(),
+        false
+    );
+    g.setGradientFill(bgGradient);
+    g.fillRoundedRectangle(bounds, cornerRadius);
     
     // Get current level
     auto currentLevel = getLevelFunc ? getLevelFunc() : level.get();
     
     // Convert to dB if needed
     auto levelDb = currentLevel > 0.0f ? juce::Decibels::gainToDecibels(currentLevel) : NEGATIVE_INFINITY;
-    
-    // Clamp to our range
     levelDb = juce::jlimit(NEGATIVE_INFINITY, MAX_DECIBELS, levelDb);
     
     // Calculate meter fill height
     auto normalizedLevel = juce::jmap(levelDb, NEGATIVE_INFINITY, MAX_DECIBELS, 0.0f, 1.0f);
     auto meterHeight = bounds.getHeight() * normalizedLevel;
     
-    // Draw the meter with gradient effect
+    // Draw the meter with segmented LED style
     if (meterHeight > 0)
     {
-        auto meterRect = bounds.withHeight(meterHeight).withBottomY(bounds.getBottom()).reduced(1.0f);
+        auto meterBounds = bounds.reduced(2.0f);
+        auto fillHeight = meterBounds.getHeight() * normalizedLevel;
         
-        // Color based on level using color scheme
-        if (levelDb > 0.0f)
-        {
-            g.setColour(PluginColors::getThresholdColor());  // Over 0dB = threshold color
-        }
-        else if (levelDb > -6.0f)
-        {
-            g.setColour(PluginColors::getGainReductionColor());  // -6dB to 0dB = gain reduction color
-        }
-        else
-        {
-            g.setColour(PluginColors::getInputSignalColor());   // Below -6dB = input signal color
-        }
+        // Number of segments
+        const int numSegments = 8;  // Reduced for better performance
+        const float segmentHeight = meterBounds.getHeight() / numSegments;
+        const float segmentGap = 1.0f;
         
-        g.fillRoundedRectangle(meterRect, 1.0f);
+        for (int i = 0; i < numSegments; ++i)
+        {
+            auto segmentY = meterBounds.getBottom() - (i + 1) * segmentHeight;
+            auto segmentRect = juce::Rectangle<float>(
+                meterBounds.getX(),
+                segmentY + segmentGap * 0.5f,
+                meterBounds.getWidth(),
+                segmentHeight - segmentGap
+            );
+            
+            // Only draw segments that are within the current level
+            if (segmentY + segmentHeight >= meterBounds.getBottom() - fillHeight)
+            {
+                // Color based on segment position
+                float segmentLevel = (float)i / (float)(numSegments - 1);
+                juce::Colour segmentColor;
+                
+                if (segmentLevel > 0.85f)
+                    segmentColor = PluginColors::getMeterRed();       // Top 15% - Red
+                else if (segmentLevel > 0.7f)
+                    segmentColor = PluginColors::getMeterOrange();    // 70-85% - Orange  
+                else if (segmentLevel > 0.5f)
+                    segmentColor = PluginColors::getMeterYellow();    // 50-70% - Yellow
+                else
+                    segmentColor = PluginColors::getMeterGreen();     // Bottom 50% - Green
+                
+                // Add glow effect for active segments
+                g.setColour(segmentColor.withAlpha(0.3f));
+                g.fillRoundedRectangle(segmentRect.expanded(1), 1.0f);
+                
+                g.setColour(segmentColor);
+                g.fillRoundedRectangle(segmentRect, 1.0f);
+            }
+        }
     }
     
-    // Draw scale marks
-    g.setColour(PluginColors::getScaleTextColor());
-    g.setFont(8.0f);
+    // Modern border
+    g.setColour(PluginColors::getBorderLight());
+    g.drawRoundedRectangle(bounds, cornerRadius, 1.0f);
     
-    auto drawScaleMark = [&](float dbLevel, const juce::String& text)
+    // Scale marks with better styling
+    g.setColour(PluginColors::getTextSecondary());
+    g.setFont(juce::Font(juce::FontOptions(7.0f)).boldened());
+    
+    auto drawScaleMark = [&](float dbLevel, const juce::String& text, bool major = false)
     {
-        auto y = juce::jmap(dbLevel, NEGATIVE_INFINITY, MAX_DECIBELS, bounds.getBottom(), bounds.getY());
-        g.drawLine(bounds.getX(), y, bounds.getX() + 3, y);
-        g.drawText(text, bounds.getX() + 4, y - 4, 15, 8, juce::Justification::left);
+        auto y = juce::jmap(dbLevel, NEGATIVE_INFINITY, MAX_DECIBELS, bounds.getBottom() - 2, bounds.getY() + 2);
+        auto lineLength = major ? 4.0f : 2.0f;
+        
+        // Scale line
+        g.setColour(PluginColors::getBorderLight().withAlpha(major ? 0.8f : 0.5f));
+        g.drawLine(bounds.getRight() - lineLength, y, bounds.getRight(), y, major ? 1.0f : 0.5f);
+        
+        // Scale text for major marks
+        if (major && bounds.getWidth() > 25)
+        {
+            g.setColour(PluginColors::getTextSecondary());
+            g.drawText(text, bounds.getRight() + 2, y - 6, 20, 12, juce::Justification::left);
+        }
     };
     
-    drawScaleMark(0.0f, "0");
-    drawScaleMark(-6.0f, "-6");
-    drawScaleMark(-12.0f, "-12");
-    drawScaleMark(-18.0f, "-18");
+    // Major scale marks
+    drawScaleMark(0.0f, "0", true);
+    drawScaleMark(-6.0f, "-6", true);
+    drawScaleMark(-12.0f, "-12", true);
+    drawScaleMark(-18.0f, "-18", true);
+    drawScaleMark(-24.0f, "-24", true);
+    
+    // Minor scale marks
+    drawScaleMark(-3.0f, "-3");
+    drawScaleMark(-9.0f, "-9");
+    drawScaleMark(-15.0f, "-15");
+    drawScaleMark(-21.0f, "-21");
 }
 
 void LevelMeter::setLevel(float newLevel)
@@ -571,24 +797,25 @@ void DSP_Gui::resized()
 {
     auto bounds = getModuleBackgroundArea(getLocalBounds());
 
-    // Reserve space for meters at the left and right with better spacing
-    static constexpr int meterWidth = 32;
-    static constexpr int meterPadding = 4;
+    // Enhanced meter layout with better proportions
+    static constexpr int meterWidth = 36;
+    static constexpr int meterPadding = 6;
+    static constexpr int meterGap = 6;
     
     auto leftMeterArea = bounds.removeFromLeft(meterWidth).reduced(meterPadding);
     auto rightMeterArea = bounds.removeFromRight(meterWidth).reduced(meterPadding);
     
-    // Add some horizontal spacing
-    bounds.removeFromLeft(8);
-    bounds.removeFromRight(8);
+    // More generous horizontal spacing for better visual separation
+    bounds.removeFromLeft(12);
+    bounds.removeFromRight(12);
     
-    // Split meter areas vertically for input/output meters with gap
-    auto leftInputArea = leftMeterArea.removeFromTop((leftMeterArea.getHeight() - 4) / 2);
-    leftMeterArea.removeFromTop(4); // gap
+    // Split meter areas with labels
+    auto leftInputArea = leftMeterArea.removeFromTop((leftMeterArea.getHeight() - meterGap) / 2);
+    leftMeterArea.removeFromTop(meterGap);
     auto leftOutputArea = leftMeterArea;
     
-    auto rightInputArea = rightMeterArea.removeFromTop((rightMeterArea.getHeight() - 4) / 2);
-    rightMeterArea.removeFromTop(4); // gap  
+    auto rightInputArea = rightMeterArea.removeFromTop((rightMeterArea.getHeight() - meterGap) / 2);
+    rightMeterArea.removeFromTop(meterGap);
     auto rightOutputArea = rightMeterArea;
     
     leftInputMeter.setBounds(leftInputArea);
@@ -596,37 +823,65 @@ void DSP_Gui::resized()
     rightInputMeter.setBounds(rightInputArea);
     rightOutputMeter.setBounds(rightOutputArea);
 
-   // to fit the DSP_Gui component's bounds. It lays out buttons at the top, comboBoxes on the left,
-   // and sliders in the remaining area. The logic checks if each vector is empty before laying out
-   // the corresponding controls, and divides the available space evenly among the controls of each type.
-    if( buttons.empty() == false )
+    // Enhanced control layout with better visual hierarchy
+    
+    // Buttons at top with improved styling
+    if (!buttons.empty())
     {
-        auto buttonArea = bounds.removeFromTop(35).reduced(4);
-        auto w = buttonArea.getWidth() / buttons.size();
-        for( auto& button : buttons )
+        auto buttonArea = bounds.removeFromTop(40).reduced(6);
+        auto buttonWidth = juce::jmin(120, buttonArea.getWidth() / static_cast<int>(buttons.size()));
+        auto totalButtonWidth = buttonWidth * static_cast<int>(buttons.size());
+        auto buttonStartX = (buttonArea.getWidth() - totalButtonWidth) / 2;
+        
+        auto currentX = buttonStartX;
+        for (auto& button : buttons)
         {
-            button->setBounds(buttonArea.removeFromLeft( static_cast<int>(w) ).reduced(2));
+            button->setBounds(juce::Rectangle<int>(currentX, buttonArea.getY(), buttonWidth - 4, buttonArea.getHeight()));
+            currentX += buttonWidth;
+        }
+        
+        bounds.removeFromTop(8); // Spacing after buttons
+    }
+    
+    // ComboBoxes in left column with better proportions
+    if (!comboBoxes.empty())
+    {
+        auto comboBoxArea = bounds.removeFromLeft(juce::jmin(180, bounds.getWidth() / 3));
+        auto comboHeight = juce::jmin(32, comboBoxArea.getHeight() / static_cast<int>(comboBoxes.size()));
+        
+        for (auto& cb : comboBoxes)
+        {
+            auto cbBounds = comboBoxArea.removeFromTop(comboHeight).reduced(4);
+            cb->setBounds(cbBounds);
+            comboBoxArea.removeFromTop(4); // Small gap between combo boxes
+        }
+        
+        bounds.removeFromLeft(8); // Spacing after combo boxes
+    }
+    
+    // Sliders with improved layout and spacing
+    if (!sliders.empty())
+    {
+        // Calculate optimal slider width with proper spacing
+        auto totalSpacing = (static_cast<int>(sliders.size()) - 1) * 8; // 8px between sliders
+        auto availableWidth = bounds.getWidth() - totalSpacing;
+        auto sliderWidth = availableWidth / static_cast<int>(sliders.size());
+        
+        // Ensure minimum slider width for usability
+        sliderWidth = juce::jmax(sliderWidth, 60);
+        
+        for (size_t i = 0; i < sliders.size(); ++i)
+        {
+            auto sliderBounds = bounds.removeFromLeft(sliderWidth);
+            sliders[i]->setBounds(sliderBounds.reduced(2)); // Small padding around each slider
+            
+            if (i < sliders.size() - 1) // Don't add spacing after last slider
+                bounds.removeFromLeft(8);
         }
     }
     
-    if( comboBoxes.empty() == false )
-    {
-        auto comboBoxArea = bounds.removeFromLeft(bounds.getWidth() / 4);
-        auto h = juce::jmin(comboBoxArea.getHeight() / static_cast<int>(comboBoxes.size()), 30);
-        for( auto& cb : comboBoxes )
-        {
-            cb->setBounds(comboBoxArea.removeFromTop( static_cast<int>(h) ));
-        }
-    }
-    
-    if( sliders.empty() == false )
-    {
-        auto w = bounds.getWidth() / sliders.size();
-        for( auto& slider : sliders )
-        {
-            slider->setBounds(bounds.removeFromLeft( static_cast<int>(w) ));
-        }
-    }
+    // Add subtle visual cues - this could be used for parameter grouping in the future
+    // (Implementation would go in paint method)
 }
 void DSP_Gui::paint( juce::Graphics& g )
 {
@@ -700,16 +955,32 @@ void DSP_Gui::rebuildInterface( std::vector< juce::RangedAudioParameter* > param
 Audio_proAudioProcessorEditor::Audio_proAudioProcessorEditor (Audio_proAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), customLookAndFeel(std::make_unique<CustomLookAndFeel>())
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be
+    // Apply modern look and feel
     setLookAndFeel(customLookAndFeel.get());
+    
+    // Add components in proper Z-order
+    addAndMakeVisible(analyzer);
     addAndMakeVisible(tabbedComponent);
     addAndMakeVisible(dspGui);
+    
+    // Set up interaction listeners
     tabbedComponent.addListener(this);
-    startTimerHz(30);
-    setSize (800, 600);
-    addAndMakeVisible(analyzer);
-
+    
+    // Start UI refresh timer (15 FPS for better performance)
+    startTimerHz(15);
+    
+    // Set optimal initial size with 16:10 aspect ratio for modern displays
+    setSize(880, 660);
+    
+    // Enable resizing with constraints
+    setResizable(true, true);
+    setResizeLimits(650, 450, 1400, 1000);
+    
+    // Enable keyboard focus for better accessibility
+    setWantsKeyboardFocus(true);
+    
+    // Optional: Add subtle drop shadow for depth (if supported by host)
+    // setComponentEffect(&dropShadow);
 }
 
 Audio_proAudioProcessorEditor::~Audio_proAudioProcessorEditor()
@@ -722,41 +993,86 @@ Audio_proAudioProcessorEditor::~Audio_proAudioProcessorEditor()
 //==============================================================================
 void Audio_proAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // Modern gradient background
+    // Modern multi-layer background
     auto bounds = getLocalBounds().toFloat();
     
-    juce::ColourGradient gradient(PluginColors::getAnalyzerGridColor(), 
-                                  bounds.getTopLeft(),
-                                  juce::Colours::black, 
-                                  bounds.getBottomRight(), 
-                                  false);
-    
-    g.setGradientFill(gradient);
+    // Base gradient background
+    juce::ColourGradient mainGradient(
+        PluginColors::getWindowBackground().brighter(0.05f), 
+        bounds.getCentreX(), bounds.getY(),
+        PluginColors::getWindowBackground().darker(0.1f), 
+        bounds.getCentreX(), bounds.getBottom(),
+        false
+    );
+    g.setGradientFill(mainGradient);
     g.fillAll();
     
-    // Optional: Add a subtle border
-    g.setColour(PluginColors::getModuleBorderColor());
-    g.drawRect(getLocalBounds(), 1);
+    // Removed noise texture for better performance
+    
+    // Title area with brand styling
+    auto titleArea = bounds.removeFromTop(25);
+    juce::ColourGradient titleGradient(
+        PluginColors::getPrimaryBlueDark().withAlpha(0.8f),
+        titleArea.getTopLeft(),
+        PluginColors::getPrimaryBlue().withAlpha(0.3f),
+        titleArea.getBottomLeft(),
+        false
+    );
+    g.setGradientFill(titleGradient);
+    g.fillRect(titleArea);
+    
+    // Plugin title
+    g.setColour(PluginColors::getTextPrimary());
+    g.setFont(juce::Font(juce::FontOptions(14.0f)).boldened());
+    g.drawText("AUDIO PRO", titleArea.reduced(10, 0).toNearestInt(), 
+               juce::Justification::left, true);
+    
+    // Outer border with enhanced styling
+    g.setColour(PluginColors::getBorderDark());
+    g.drawRect(bounds, 2.0f);
+    
+    // Inner highlight border
+    g.setColour(PluginColors::getBorderLight().withAlpha(0.3f));
+    g.drawRect(bounds.reduced(2), 1.0f);
 }
 
 void Audio_proAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
     auto bounds = getLocalBounds();
     
-    // Better proportions: 50% analyzer, 30% controls, 20% for tabs/spacing
-    auto analyzerArea = bounds.removeFromTop(bounds.getHeight() * 0.5);
-    auto spacer = bounds.removeFromTop(5); // Small gap
-    juce::ignoreUnused(spacer);
+    // Reserve space for title bar
+    bounds.removeFromTop(25);
     
-    tabbedComponent.setBounds(bounds.removeFromTop(30));
+    // Add padding around the entire interface
+    bounds.reduce(8, 8);
     
-    // Give remaining space to DSP controls
+    // Enhanced proportions for better visual balance
+    // 45% for analyzer (main visual element)
+    auto analyzerArea = bounds.removeFromTop(static_cast<int>(bounds.getHeight() * 0.45f));
+    
+    // Elegant spacing
+    bounds.removeFromTop(8);
+    
+    // 12% for tabbed interface (compact but functional)
+    auto tabArea = bounds.removeFromTop(static_cast<int>(bounds.getHeight() * 0.15f));
+    tabArea = tabArea.withHeight(juce::jmax(32, tabArea.getHeight())); // Minimum tab height
+    tabbedComponent.setBounds(tabArea);
+    
+    // Another small gap
+    bounds.removeFromTop(6);
+    
+    // Remaining space for DSP controls (approximately 40% of original height)
     dspGui.setBounds(bounds);
     
-    // Add some padding around analyzer for better visual integration
-    analyzer.setBounds(analyzerArea.reduced(4));
+    // Analyzer with proper padding and rounded corners consideration
+    analyzer.setBounds(analyzerArea.reduced(2));
+    
+    // Ensure minimum size constraints
+    auto minSize = juce::Point<int>(650, 450);
+    if (getWidth() < minSize.x || getHeight() < minSize.y)
+    {
+        setSize(juce::jmax(getWidth(), minSize.x), juce::jmax(getHeight(), minSize.y));
+    }
 }
 void Audio_proAudioProcessorEditor::tabOrderChanged( Audio_proAudioProcessor::DSP_Order newOrder )
 {
